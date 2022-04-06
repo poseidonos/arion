@@ -1,9 +1,9 @@
 import json
 import lib
+import os
 import pos
 import prerequisite
 import time
-import os
 
 
 class Target:
@@ -18,8 +18,8 @@ class Target:
         except Exception as e:
             self.prereq = None
         self.spdk_dir = json["POS"]["DIR"] + "/lib/spdk"
-        self.spdk_tp = json["SPDK"]["TRANSPORT"]["TYPE"]
-        self.spdk_no_shd_buf = json["SPDK"]["TRANSPORT"]["NUM_SHARED_BUFFER"]
+        self.pos_tp = json["POS"]["TRANSPORT"]["TYPE"]
+        self.pos_tp_num_shd_buf = json["POS"]["TRANSPORT"]["NUM_SHARED_BUFFER"]
         self.pos_dir = json["POS"]["DIR"]
         self.pos_bin = json["POS"]["BIN"]
         self.pos_cfg = json["POS"]["CFG"]
@@ -36,10 +36,6 @@ class Target:
             self.pos_telemetry = json["POS"]["TELEMETRY"]
         except Exception as e:
             self.pos_telemetry = True
-        self.use_autogen = json["AUTO_GENERATE"]["USE"]
-        self.subsystem_list = []
-        self.array_volume_list = {}
-        self.volume_size = ""
         try:
             self.cli_local_run = json["POS"]["CLI_LOCAL_RUN"]
         except Exception as e:
@@ -48,10 +44,6 @@ class Target:
 
     def Prepare(self) -> None:
         lib.printer.green(f" {__name__}.Prepare : {self.name}")
-
-        if (self.pos_dirty_bringup):
-            self.DirtyBringup()
-            return
 
         # Step 1. Prerequisite Setting
         if (self.prereq and self.prereq["CPU"]["RUN"]):
@@ -102,87 +94,75 @@ class Target:
                             self.pos_bin, self.pos_dir, self.pos_log)
         time.sleep(5)
 
-        # Step 3. SPDK(via pos-cli) Setting
-        self.cli.subsystem_create_transport(self.spdk_tp, self.spdk_no_shd_buf)
-
-        # create subsystem and add listener
-        if "yes" == self.use_autogen:
-            nqn_base = 0
-            for subsys in self.json["AUTO_GENERATE"]["SUBSYSTEMs"]:
-                for i in range(subsys["NUM"]):
-                    nqn = f"nqn.2020-10.pos\\:subsystem{i+nqn_base+1:02d}"
-                    sn = f"POS000000000000{i+nqn_base+1:02d}"
-                    self.cli.subsystem_create(nqn, sn)
-                    self.cli.subsystem_add_listener(
-                        nqn, self.spdk_tp, self.json["NIC"][subsys["IP"]], subsys["PORT"])
-                    subsystem_tmp = [subsys["INITIATOR"], nqn, sn,
-                                     self.json["NIC"][subsys["IP"]], subsys["PORT"]]
-                    self.subsystem_list.append(subsystem_tmp)
-                nqn_base += subsys["NUM"]
-        else:
-            for subsys in self.json["SPDK"]["SUBSYSTEMs"]:
-                self.cli.subsystem_create(subsys["NQN"], subsys["SN"])
-                self.cli.subsystem_add_listener(
-                    subsys["NQN"], self.spdk_tp, self.json["NIC"][subsys["IP"]], subsys["PORT"])
-
-        # Step 4. POS Setting
+        # Step 3. POS Setting
+        self.cli.subsystem_create_transport(
+            self.pos_tp, self.pos_tp_num_shd_buf)
         self.cli.logger_set_level(self.pos_logger_level)
         if (self.pos_telemetry):
             self.cli.telemetry_start()
         else:
             self.cli.telemetry_stop()
 
-        for array in self.json["POS"]["ARRAYs"]:
-            buf_dev = array["BUFFER_DEVICE"]
+        # Step 3.1. subsystem create, add listener
+        for subsys in self.json["POS"]["SUBSYSTEMs"]:
+            nqn_index = subsys["NQN_INDEX"]
+            sn_index = subsys["SN_INDEX"]
+            for i in range(subsys["NUM_SUBSYSTEMS"]):
+                nqn = f"{subsys['NQN_PREFIX']}{nqn_index:03d}"
+                sn = f"{subsys['SN_PREFIX']}{sn_index:03d}"
+                nqn_index += 1
+                sn_index += 1
+                self.cli.subsystem_create(nqn, sn)
+                self.cli.subsystem_add_listener(
+                    nqn, self.pos_tp, self.json["NIC"][subsys["IP"]], subsys["PORT"])
+
+        # Step 3.2. device create, scan, list
+        for dev in self.json["POS"]["DEVICEs"]:
             self.cli.device_create(
-                buf_dev["NAME"], buf_dev["TYPE"], buf_dev["NUM_BLOCKS"], buf_dev["BLOCK_SIZE"], buf_dev["NUMA"])
-
+                dev["NAME"], dev["TYPE"], dev["NUM_BLOCKS"], dev["BLOCK_SIZE"], dev["NUMA"])
         self.cli.device_scan()
+        json_obj = json.loads(self.cli.device_list())
+        print(json.dumps(json_obj, indent=2))
+
+        if (self.pos_dirty_bringup):
+            self.DirtyBringup()
+            return
+
+        # Step 3.3. array reset, create, mount
         self.cli.array_reset()
-        for array in self.json["POS"]["ARRAYs"]:
-            self.cli.array_create(array["BUFFER_DEVICE"]["NAME"], array["USER_DEVICE_LIST"],
-                                  array["SPARE_DEVICE_LIST"], array["NAME"], array["RAID_TYPE"])
-            if array.get("WRITE_THROUGH"):
-                self.cli.array_mount(array["NAME"], array["WRITE_THROUGH"])
+        for arr in self.json["POS"]["ARRAYs"]:
+            self.cli.array_create(
+                arr["BUFFER_DEV"],
+                arr["USER_DEVICE_LIST"],
+                arr["SPARE_DEVICE_LIST"],
+                arr["NAME"],
+                arr["RAID_OR_MEDIA"]
+            )
+            if arr.get("WRITE_THROUGH"):
+                self.cli.array_mount(arr["NAME"], arr["WRITE_THROUGH"])
             else:
-                self.cli.array_mount(array["NAME"])
-            if "yes" != self.use_autogen:
-                for volume in array["VOLUMEs"]:
-                    self.cli.volume_create(
-                        volume["NAME"], volume["SIZE"], array["NAME"])
-                    self.cli.volume_mount(
-                        volume["NAME"], volume["SUBNQN"], array["NAME"])
+                self.cli.array_mount(arr["NAME"])
+            json_obj = json.loads(self.cli.array_list(arr["NAME"]))
+            print(json.dumps(json_obj, indent=2))
 
-        # create, mount volume(auto)
-        if "yes" == self.use_autogen:
-            nqn_base = 0
-            for subsys in self.json["AUTO_GENERATE"]["SUBSYSTEMs"]:
-                for vol in subsys["VOLUMEs"]:
-                    volume_list = []
-                    for i in range(vol["NUM"]):
-                        nqn = f"nqn.2020-10.pos:subsystem{i+nqn_base+1:02d}"
-                        volume_name = f"VOL{i+nqn_base+1}"
-                        volume_list.append(volume_name)
-                        self.volume_size = vol["SIZE"]
-                        self.cli.volume_create(
-                            volume_name, vol["SIZE"], vol["ARRAY"])
-                        self.cli.volume_mount(volume_name, nqn, vol["ARRAY"])
-                    nqn_base += vol["NUM"]
-                    self.array_volume_list[vol["ARRAY"]] = volume_list
+        # Step 3.4. volume create, mount
+        for arr in self.json["POS"]["ARRAYs"]:
+            for vol in arr["VOLUMEs"]:
+                name_index = vol["NAME_INDEX"]
+                nqn_index = vol["NQN_INDEX"]
+                for i in range(vol["NUM_VOLUMES"]):
+                    name = f"{vol['NAME_PREFIX']}{name_index:03d}"
+                    nqn = f"{vol['NQN_PREFIX']}{nqn_index:03d}"
+                    name_index += 1
+                    nqn_index += 1
+                    if (nqn_index >= vol["NQN_INDEX"] + vol["USE_SUBSYSTEMS"]):
+                        nqn_index = vol["NQN_INDEX"]
+                    size = vol["SIZE_MiB"] * 1048576
+                    self.cli.volume_create(name, size, arr["NAME"])
+                    self.cli.volume_mount(name, nqn, arr["NAME"])
 
-        # print subsystems
-        subsys_json_obj = json.loads(self.cli.subsystem_list())
-        subsys_list = subsys_json_obj["Response"]["result"]["data"]["subsystemlist"]
-        subsys_count = 1
-        for subsys in subsys_list:
-            if (subsys_count == 1):
-                print(f"{subsys['nqn']} {subsys['subtype']}")
-            else:
-                print(
-                    f"{subsys['nqn']} {subsys['subtype']} {subsys['serial_number']}")
-                print(f"  \u221F {subsys['listen_addresses']}")
-                print(f"  \u221F {subsys['namespaces']}")
-            subsys_count += 1
+        json_obj = json.loads(self.cli.subsystem_list())
+        print(json.dumps(json_obj, indent=2))
 
         lib.printer.green(f" '{self.name}' prepared")
 
@@ -198,81 +178,31 @@ class Target:
         time.sleep(1)
 
     def DirtyBringup(self) -> None:
-        pos.env.copy_pos_config(
-            self.id, self.pw, self.nic_ssh, self.pos_dir, self.pos_cfg)
-        pos.env.execute_pos(self.id, self.pw, self.nic_ssh,
-                            self.pos_bin, self.pos_dir, self.pos_log)
-        time.sleep(5)
-
-        # spdk setting
-        self.cli.subsystem_create_transport(self.spdk_tp, self.spdk_no_shd_buf)
-
-        if "yes" == self.use_autogen:
-            nqn_base = 0
-            for subsys in self.json["AUTO_GENERATE"]["SUBSYSTEMs"]:
-                for i in range(subsys["NUM"]):
-                    nqn = f"nqn.2020-10.pos\\:subsystem{i+nqn_base+1:02d}"
-                    sn = f"POS000000000000{i+nqn_base+1:02d}"
-                    self.cli.subsystem_create(nqn, sn)
-                    self.cli.subsystem_add_listener(
-                        nqn, self.spdk_tp, self.json["NIC"][subsys["IP"]], subsys["PORT"])
-                    subsystem_tmp = [subsys["INITIATOR"], nqn, sn,
-                                     self.json["NIC"][subsys["IP"]], subsys["PORT"]]
-                    self.subsystem_list.append(subsystem_tmp)
-                nqn_base += subsys["NUM"]
-        else:
-            for subsys in self.json["SPDK"]["SUBSYSTEMs"]:
-                self.cli.subsystem_create(subsys["NQN"], subsys["SN"])
-                self.cli.subsystem_add_listener(
-                    subsys["NQN"], self.spdk_tp, self.json["NIC"][subsys["IP"]], subsys["PORT"])
-
-        # pos setting
-        for array in self.json["POS"]["ARRAYs"]:
-            buf_dev = array["BUFFER_DEVICE"]
-            self.cli.device_create(
-                buf_dev["NAME"], buf_dev["TYPE"], buf_dev["NUM_BLOCKS"], buf_dev["BLOCK_SIZE"], buf_dev["NUMA"])
-        self.cli.device_scan()
-
-        # pos setting
-        for array in self.json["POS"]["ARRAYs"]:
-            if array.get("WRITE_THROUGH"):
-                self.cli.array_mount(array["NAME"], array["WRITE_THROUGH"])
+        # Step 3.3. array mount
+        for arr in self.json["POS"]["ARRAYs"]:
+            if arr.get("WRITE_THROUGH"):
+                self.cli.array_mount(arr["NAME"], arr["WRITE_THROUGH"])
             else:
-                self.cli.array_mount(array["NAME"])
-            if "yes" != self.use_autogen:
-                for volume in array["VOLUMEs"]:
-                    self.cli.volume_mount(
-                        volume["NAME"], volume["SUBNQN"], array["NAME"])
+                self.cli.array_mount(arr["NAME"])
+            json_obj = json.loads(self.cli.array_list(arr["NAME"]))
+            print(json.dumps(json_obj, indent=2))
 
-        # create, mount volume(auto)
-        if "yes" == self.use_autogen:
-            nqn_base = 0
-            for subsys in self.json["AUTO_GENERATE"]["SUBSYSTEMs"]:
-                for vol in subsys["VOLUMEs"]:
-                    volume_list = []
-                    for i in range(vol["NUM"]):
-                        nqn = f"nqn.2020-10.pos:subsystem{i+nqn_base+1:02d}"
-                        volume_name = f"VOL{i+nqn_base+1}"
-                        volume_list.append(volume_name)
-                        self.cli.volume_mount(volume_name, nqn, vol["ARRAY"])
-                    nqn_base += vol["NUM"]
-                    self.array_volume_list[vol["ARRAY"]] = volume_list
+        # Step 3.4. volume mount
+        for arr in self.json["POS"]["ARRAYs"]:
+            for vol in arr["VOLUMEs"]:
+                name_index = vol["NAME_INDEX"]
+                nqn_index = vol["NQN_INDEX"]
+                for i in range(vol["NUM_VOLUMES"]):
+                    name = f"{vol['NAME_PREFIX']}{name_index:03d}"
+                    nqn = f"{vol['NQN_PREFIX']}{nqn_index:03d}"
+                    name_index += 1
+                    nqn_index += 1
+                    if (nqn_index >= vol["NQN_INDEX"] + vol["USE_SUBSYSTEMS"]):
+                        nqn_index = vol["NQN_INDEX"]
+                    self.cli.volume_mount(name, nqn, arr["NAME"])
 
-        self.cli.logger_set_level(self.pos_logger_level)
-
-        # print subsystems
-        subsys_json_obj = json.loads(self.cli.subsystem_list())
-        subsys_list = subsys_json_obj["Response"]["result"]["data"]["subsystemlist"]
-        subsys_count = 1
-        for subsys in subsys_list:
-            if (subsys_count == 1):
-                print(f"{subsys['nqn']} {subsys['subtype']}")
-            else:
-                print(
-                    f"{subsys['nqn']} {subsys['subtype']} {subsys['serial_number']}")
-                print(f"  \u221F {subsys['listen_addresses']}")
-                print(f"  \u221F {subsys['namespaces']}")
-            subsys_count += 1
+        json_obj = json.loads(self.cli.subsystem_list())
+        print(json.dumps(json_obj, indent=2))
 
         lib.printer.green(f" '{self.name}' prepared")
 

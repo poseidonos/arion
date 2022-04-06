@@ -67,8 +67,6 @@ def play(json_targets, json_inits, json_scenario):  # player.py에서 호출하�
     # run workload
     if not skip_workload:
         lib.printer.green(f" fio start")
-        # targets 딕셔너리에 첫 번째 객체 정보를 가져온다
-        test_target = targets[next(iter(targets))]
         # initiators 딕셔너리에 첫 번째 객체 정보를 가져온다
         test_init = initiators[next(iter(initiators))]
         test_fio = fio.manager.Fio(
@@ -98,10 +96,19 @@ def play(json_targets, json_inits, json_scenario):  # player.py에서 호출하�
         test_fio.opt["log_avg_msec"] = "1000"
 
         # test할 job을 --name --filename으로 추가할 수 있다. 주로 multi-device를 동시에 실행시키는 용도로 사용된다
-        # 해당 option은 test_fio 객체에 jobs 리스트에 아래와 같이 추가한다
-        for subsys in test_target.json["SPDK"]["SUBSYSTEMs"]:
-            test_fio.jobs.append(f" --name=job_{subsys['SN']} --filename=\"trtype={test_target.spdk_tp} adrfam=IPv4 \
-            traddr={test_target.json['NIC'][subsys['IP']]} trsvcid={subsys['PORT']} subnqn={subsys['NQN']} ns=1\"")
+        for tgt in test_init.json["TARGETs"]:
+            for subsys in tgt["SUBSYSTEMs"]:
+                nqn_index = subsys["NQN_INDEX"]
+                for subsys_idx in range(subsys["NUM_SUBSYSTEMS"]):
+                    nqn = f"{subsys['NQN_PREFIX']}{nqn_index:03d}"
+                    ns = subsys["NS_INDEX"]
+                    for ns_idx in range(subsys["NUM_NS"]):
+                        test_fio.jobs.append(
+                            f" --name=job_{tgt['NAME']}_{nqn}_{ns} --filename=\"trtype={tgt['TRANSPORT']} \
+                                adrfam=IPv4 traddr={tgt['IP']} trsvcid={tgt['PORT']} subnqn={nqn} ns={ns}\""
+                        )
+                        ns += 1
+                    nqn_index += 1
 
         # test마다 가변적인 옵션이 필요할 경우 아래와 같이 loop를 통해 변경해 줄 수 있다
         # 이때 주의할 점은 fio의 특정 옵션은 다른 옵션들과 동시에 사용할 수 없기 때문에 사용자가 주의해서 사용해야 한다

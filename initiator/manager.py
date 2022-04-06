@@ -23,8 +23,9 @@ class Initiator:
             self.vdbench_dir = json["VDBENCH"]["DIR"]
         except Exception as e:
             self.vdbench_dir = ""
+        self.targets = json["TARGETs"]
 
-    def Prepare(self, connect_nvme=False, subsystem_list=[]) -> None:
+    def Prepare(self) -> None:
         lib.printer.green(f" {__name__}.Prepare : {self.name}")
         if (self.prereq and self.prereq["CPU"]["RUN"]):
             prerequisite.cpu.Scaling(
@@ -53,50 +54,73 @@ class Initiator:
             self.id, self.pw, self.nic_ssh, self.output_dir)
         pos.env.make_directory(self.id, self.pw, self.nic_ssh, self.output_dir)
 
-        if connect_nvme is True:
-            self.DisconnectNvme(subsystem_list)
-            self.DiscoverNvme(subsystem_list)
-            self.ConnectNvme(subsystem_list)
-
+        self.ConnectKDD()
         lib.printer.green(f" '{self.name}' prepared")
 
-    def Wrapup(self, connect_nvme=False, subsystem_list=[]) -> None:
-        if connect_nvme is True:
-            self.DisconnectNvme(subsystem_list)
+    def Wrapup(self) -> None:
+        self.DisconnetKDD()
         lib.printer.green(f" '{self.name}' wrapped up")
 
-    def DiscoverNvme(self, subsystem_list) -> None:
-        for subsystem in subsystem_list:
-            if self.name == subsystem[0]:
-                nvme_discover_cmd = f"sshpass -p {self.pw} ssh -o StrictHostKeyChecking=no {self.id}@{self.nic_ssh} \
-                    sudo nvme discover -t {self.spdk_tp} -a {subsystem[3]} -s {subsystem[4]}"
-                lib.subproc.sync_run(nvme_discover_cmd)
+    def DisconnetKDD(self) -> None:
+        for tgt in self.targets:
+            if tgt.get("KDD_MODE") and tgt["KDD_MODE"]:
+                self.DisconnectNvme(tgt)
 
-    def ConnectNvme(self, subsystem_list) -> None:
-        for subsystem in subsystem_list:
-            if self.name == subsystem[0]:
-                nvme_connect_cmd = f"sshpass -p {self.pw} ssh -o StrictHostKeyChecking=no {self.id}@{self.nic_ssh} \
-                    sudo nvme connect -n {subsystem[1]} -t {self.spdk_tp} -a {subsystem[3]} -s {subsystem[4]}"
-                lib.subproc.sync_run(nvme_connect_cmd)
-        req_device_list = f"sshpass -p {self.pw} ssh -o StrictHostKeyChecking=no {self.id}@{self.nic_ssh} \
+    def ConnectKDD(self) -> None:
+        for tgt in self.targets:
+            if tgt.get("KDD_MODE") and tgt["KDD_MODE"]:
+                self.DisconnectNvme(tgt)
+                self.DiscoverNvme(tgt)
+                self.ConnectNvme(tgt)
+                self.ListNvme(tgt)
+
+    def DisconnectNvme(self, target) -> None:
+        for subsys in target["SUBSYSTEMs"]:
+            nqn_index = subsys["NQN_INDEX"]
+            for i in range(subsys["NUM_SUBSYSTEMS"]):
+                nqn = f"{subsys['NQN_PREFIX']}{nqn_index:03d}"
+                nqn_index += 1
+                cmd = f"sshpass -p {self.pw} ssh -o StrictHostKeyChecking=no {self.id}@{self.nic_ssh} \
+                    sudo nvme disconnect -n {nqn}"
+                lib.subproc.sync_run(cmd)
+
+    def DiscoverNvme(self, target) -> None:
+        cmd = f"sshpass -p {self.pw} ssh -o StrictHostKeyChecking=no {self.id}@{self.nic_ssh} \
+                    sudo nvme discover -t {target['TRANSPORT']} -a {target['IP']} -s {target['PORT']}"
+        lib.subproc.sync_run(cmd)
+
+    def ConnectNvme(self, target) -> None:
+        for subsys in target["SUBSYSTEMs"]:
+            nqn_index = subsys["NQN_INDEX"]
+            for i in range(subsys["NUM_SUBSYSTEMS"]):
+                nqn = f"{subsys['NQN_PREFIX']}{nqn_index:03d}"
+                nqn_index += 1
+                cmd = f"sshpass -p {self.pw} ssh -o StrictHostKeyChecking=no {self.id}@{self.nic_ssh} \
+                    sudo nvme connect -n {nqn} -t {target['TRANSPORT']} -a {target['IP']} -s {target['PORT']}"
+                lib.subproc.sync_run(cmd)
+
+    def ListNvme(self, target) -> None:
+        cmd = f"sshpass -p {self.pw} ssh -o StrictHostKeyChecking=no {self.id}@{self.nic_ssh} \
             sudo nvme list"
-        device_list = lib.subproc.sync_run(req_device_list)
+        device_list = lib.subproc.sync_run(cmd)
         device_lines = device_list.split("\n")
         device_num = len(device_lines)
+        find_device = False
         for device_idx in range(2, device_num - 1):
-            for subsystem in subsystem_list:
-                if subsystem[2] in device_lines[device_idx]:
-                    device_node = device_lines[device_idx].split(" ")[0]
-                    self.device_list.append(device_node)
+            for subsys in target["SUBSYSTEMs"]:
+                sn_index = subsys["SN_INDEX"]
+                find_device = False
+                for i in range(subsys["NUM_SUBSYSTEMS"]):
+                    sn = f"{subsys['SN_PREFIX']}{sn_index:03d}"
+                    sn_index += 1
+                    if sn in device_lines[device_idx]:
+                        device_node = device_lines[device_idx].split(" ")[0]
+                        self.device_list.append(device_node)
+                        find_device = True
+                        break
+                if (find_device):
                     break
         print(" KDD Dev List:", self.device_list)
-
-    def DisconnectNvme(self, subsystem_list) -> None:
-        for subsystem in subsystem_list:
-            if self.name == subsystem[0]:
-                nvme_disconnect_cmd = f"sshpass -p {self.pw} ssh -o StrictHostKeyChecking=no {self.id}@{self.nic_ssh} \
-                    sudo nvme disconnect -n {subsystem[1]}"
-                lib.subproc.sync_run(nvme_disconnect_cmd)
 
     def GetVolumeIdOfDevice(self, device_list):
         volume_id_list = {}

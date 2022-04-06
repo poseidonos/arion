@@ -64,14 +64,6 @@ def play(json_targets, json_inits, json_scenario):
             break
         initiators[init_name] = init_obj
 
-    # set test_target & check auto generate
-    if not skip_workload:
-        test_target = targets[next(iter(targets))]
-        if "yes" != test_target.use_autogen:
-            lib.printer.red(
-                f"{__name__} [Error] check [TARGET][AUTO_GENERATE][USE] is 'yes' ")
-            skip_workload = True
-
     # run workload
     if not skip_workload:
         lib.printer.green(f" fio start")
@@ -80,7 +72,7 @@ def play(json_targets, json_inits, json_scenario):
             f"{json_scenario['OUTPUT_DIR']}/{now_date}_normal")  # graph 객체 생성
 
         tc_list = [
-            {"name": "1_sw", "rw": "write", "bs": "128k", "iodepth": "4", "io_size": test_target.volume_size,
+            {"name": "1_sw", "rw": "write", "bs": "128k", "iodepth": "4", "io_size": "100%",
                 "time_based": "0", "runtime": "0", "log_avg_msec": "30000"},
             {"name": "2_sr", "rw": "read", "bs": "128k", "iodepth": "4", "io_size": "1t",
                 "time_based": "1", "runtime": "60", "log_avg_msec": "2000"},
@@ -137,10 +129,20 @@ def play(json_targets, json_inits, json_scenario):
                 test_fio.opt["write_bw_log"] = f"{test_fio.opt['output']}"
                 test_fio.opt["write_iops_log"] = f"{test_fio.opt['output']}"
                 test_fio.opt["write_lat_log"] = f"{test_fio.opt['output']}"
-                for subsys in test_target.subsystem_list:
-                    if subsys[0] == test_init.name:
-                        test_fio.jobs.append(
-                            f" --name=job_{subsys[2]} --filename=\"trtype={test_target.spdk_tp} adrfam=IPv4 traddr={subsys[3]} trsvcid={subsys[4]} subnqn={subsys[1]} ns=1\"")
+                for tgt in test_init.json["TARGETs"]:
+                    for subsys in tgt["SUBSYSTEMs"]:
+                        nqn_index = subsys["NQN_INDEX"]
+                        for subsys_idx in range(subsys["NUM_SUBSYSTEMS"]):
+                            nqn = f"{subsys['NQN_PREFIX']}{nqn_index:03d}"
+                            ns = subsys["NS_INDEX"]
+                            for ns_idx in range(subsys["NUM_NS"]):
+                                test_fio.jobs.append(
+                                    f" --name=job_{tgt['NAME']}_{nqn}_{ns} --filename=\"trtype={tgt['TRANSPORT']} \
+                                        adrfam=IPv4 traddr={tgt['IP']} trsvcid={tgt['PORT']} subnqn={nqn} ns={ns}\""
+                                )
+                                ns += 1
+                            nqn_index += 1
+
                 if not test_fio.Prepare():
                     skip_workload = True
                     break

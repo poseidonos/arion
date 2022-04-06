@@ -1,6 +1,6 @@
 # Configuration
 
-PIBF(PoseidonOS Integrated Benchmark Framework) provides a **specific** JSON config file which consists of Targets, Initiators, and Scenarios.
+ARION provides a **specific** JSON config file which consists of Targets, Initiators, and Scenarios.
 
 ## 1. Targets
 

@@ -1,10 +1,10 @@
-# PIBF
+# ARION
 
-PIBF(PoseidonOS Integrated Benchmark Framework) is a test framework that supports to use 3rd-party benchmark tools such as fio, vdbench, and so on. PIBF abstracts and maintains many settings(kernel, poseidonos-cli, nvme-cli, ...) so that user can focus on test scenario itself.
+ARION is a test framework that supports to use 3rd-party benchmark tools such as fio, vdbench, and so on. ARION abstracts and maintains many settings(kernel, poseidonos-cli, nvme-cli, ...) so that user can focus on test scenario itself.
 
 ## 1. Install requirements
 
-If it's first time to use PIBF, you need to check your python version is higher than 3.6.
+If it's first time to use ARION, you need to check your python version is higher than 3.6.
 
 ### pip setting (~/.config/pip/pip.conf) for Samsung Intranet
 ```

@@ -8,50 +8,55 @@
                 "SSH": "target_ssh",
                 "IP1": "target_ip1"
             },
-            "SPDK": {
-                "TRANSPORT": {
-                    "TYPE": "tcp",
-                    "NUM_SHARED_BUFFER": 4096
-                },
-                "SUBSYSTEMs": []
-            },
             "POS": {
                 "DIR": "/home/psd/ibofos",
                 "BIN": "poseidonos",
                 "CLI": "poseidonos-cli",
                 "CFG": "ibofos_for_perf_psd.conf",
                 "LOG": "pos.log",
-                "DIRTY_BRINGUP": false,
+                "TELEMETRY": false,
+                "LOGGER_LEVEL": "info",
+                "TRANSPORT": {
+                    "TYPE": "tcp",
+                    "NUM_SHARED_BUFFER": 4096
+                },
+                "SUBSYSTEMs": [
+                    {
+                        "NUM_SUBSYSTEMS": 43,
+                        "NQN_PREFIX": "nqn.2022-04.pos:subsystem",
+                        "NQN_INDEX": 1,
+                        "SN_PREFIX": "POS00000000000",
+                        "SN_INDEX": 1,
+                        "IP": "IP1",
+                        "PORT": 1158
+                    }
+                ],
+                "DEVICEs": [
+                    {
+                        "NAME": "uram0",
+                        "TYPE": "uram",
+                        "NUM_BLOCKS": 16777216,
+                        "BLOCK_SIZE": 512,
+                        "NUMA": 0
+                    }
+                ],
                 "ARRAYs": [
                     {
                         "NAME": "ARR0",
-                        "RAID_TYPE": "RAID5",
+                        "RAID_OR_MEDIA": "RAID5",
+                        "WRITE_THROUGH": false,
                         "USER_DEVICE_LIST": "unvme-ns-0,unvme-ns-1,unvme-ns-2,unvme-ns-3,unvme-ns-4,unvme-ns-5,unvme-ns-6,unvme-ns-7,unvme-ns-8,unvme-ns-9,unvme-ns-10,unvme-ns-11,unvme-ns-12,unvme-ns-13,unvme-ns-14",
                         "SPARE_DEVICE_LIST": "unvme-ns-15",
-                        "BUFFER_DEVICE": {
-                            "NAME": "uram0",
-                            "TYPE": "uram",
-                            "NUM_BLOCKS": 16777216,
-                            "BLOCK_SIZE": 512,
-                            "NUMA": 0
-                        },
-                        "VOLUMEs": []
-                    }
-                ]
-            },
-            "AUTO_GENERATE": {
-                "USE": "yes",
-                "SUBSYSTEMs": [
-                    {
-                        "NUM": 43,
-                        "IP": "IP1",
-                        "PORT": 1158,
-                        "INITIATOR": "Initiator01",
+                        "BUFFER_DEV": "uram0",
                         "VOLUMEs": [
                             {
-                                "ARRAY": "ARR0",
-                                "NUM": 43,
-                                "SIZE": 21474836480
+                                "NUM_VOLUMES": 43,
+                                "NAME_PREFIX": "VOL",
+                                "NAME_INDEX": 1,
+                                "SIZE_MiB": 20480,
+                                "USE_SUBSYSTEMS": 43,
+                                "NQN_PREFIX": "nqn.2022-04.pos:subsystem",
+                                "NQN_INDEX": 1
                             }
                         ]
                     }
@@ -70,7 +75,24 @@
             "SPDK": {
                 "DIR": "/home/psd/ibofos/lib/spdk",
                 "TRANSPORT": "tcp"
-            }
+            },
+            "TARGETs": [
+                {
+                    "NAME": "Target01",
+                    "TRANSPORT": "tcp",
+                    "IP": "target_ip1",
+                    "PORT": 1158,
+                    "SUBSYSTEMs": [
+                        {
+                            "NUM_SUBSYSTEMS": 43,
+                            "NQN_PREFIX": "nqn.2022-04.pos\\:subsystem",
+                            "NQN_INDEX": 1,
+                            "NUM_NS": 1,
+                            "NS_INDEX": 1
+                        }
+                    ]
+                }
+            ]
         }
     ],
     "Scenarios": [

@@ -46,7 +46,6 @@ def play(json_targets, json_inits, json_scenario):
 
     # init prepare
     initiators = {}
-    test_target = targets[next(iter(targets))]
     for json_init in json_inits:
         try:
             init_obj = initiator.manager.Initiator(json_init)
@@ -57,19 +56,12 @@ def play(json_targets, json_inits, json_scenario):
         init_name = json_init["NAME"]
 
         try:
-            init_obj.Prepare(True, test_target.subsystem_list)
+            init_obj.Prepare()
         except Exception as e:
             lib.printer.red(traceback.format_exc())
             skip_workload = True
             break
         initiators[init_name] = init_obj
-
-    # check auto generate
-    if not skip_workload:
-        if "yes" != test_target.use_autogen:
-            lib.printer.red(
-                f"{__name__} [Error] check [TARGET][AUTO_GENERATE][USE] is 'yes' ")
-            skip_workload = True
 
     # run workload
     if not skip_workload:
@@ -151,7 +143,7 @@ def play(json_targets, json_inits, json_scenario):
     # init wrapup
     for key in initiators:
         try:
-            initiators[key].Wrapup(True, test_target.subsystem_list)
+            initiators[key].Wrapup()
         except Exception as e:
             lib.printer.red(traceback.format_exc())
             skip_workload = True
