@@ -42,8 +42,8 @@ class Target:
             self.cli_local_run = False
         self.cli = pos.cli.Cli(json, self.cli_local_run)
 
-    def Prepare(self) -> None:
-        lib.printer.green(f" {__name__}.Prepare : {self.name}")
+    def bring_up(self) -> None:
+        lib.printer.green(f" {__name__}.bring_up start : {self.name}")
 
         # Step 1. Prerequisite Setting
         if (self.prereq and self.prereq["CPU"]["RUN"]):
@@ -125,7 +125,7 @@ class Target:
         print(json.dumps(json_obj, indent=2))
 
         if (self.pos_dirty_bringup):
-            self.DirtyBringup()
+            self.dirty_bring_up()
             return
 
         # Step 3.3. array reset, create, mount
@@ -163,21 +163,20 @@ class Target:
 
         json_obj = json.loads(self.cli.subsystem_list())
         print(json.dumps(json_obj, indent=2))
+        lib.printer.green(f" {__name__}.bring_up end : {self.name}")
 
-        lib.printer.green(f" '{self.name}' prepared")
-
-    def Wrapup(self) -> None:
+    def wrap_up(self) -> None:
         for array in self.json["POS"]["ARRAYs"]:
             self.cli.array_unmount(array["NAME"])
         self.cli.system_stop()
-        lib.printer.green(f" '{self.name}' wrapped up")
+        lib.printer.green(f" {__name__}.wrapp_up end : {self.name}")
 
-    def ForcedExit(self) -> None:
+    def forced_exit(self) -> None:
         pos.env.kill_pos(self.id, self.pw, self.nic_ssh, self.pos_bin)
-        lib.printer.green(f" '{self.name}' forced exited")
         time.sleep(1)
+        lib.printer.green(f" {__name__}.forced_exit end : {self.name}")
 
-    def DirtyBringup(self) -> None:
+    def dirty_bring_up(self) -> None:
         # Step 3.3. array mount
         for arr in self.json["POS"]["ARRAYs"]:
             if arr.get("WRITE_THROUGH"):
@@ -203,23 +202,22 @@ class Target:
 
         json_obj = json.loads(self.cli.subsystem_list())
         print(json.dumps(json_obj, indent=2))
+        lib.printer.green(f" {__name__}.dirty_bring_up end : {self.name}")
 
-        lib.printer.green(f" '{self.name}' prepared")
-
-    def DetachDevice(self, dev) -> None:
+    def detach_device(self, dev) -> None:
         return pos.env.detach_device(self.id, self.pw, self.nic_ssh, dev)
 
-    def PcieScan(self) -> None:
+    def pcie_scan(self) -> None:
         return pos.env.pcie_scan(self.id, self.pw, self.nic_ssh)
 
-    def CheckRebuildComplete(self, arr_name):
+    def check_rebuild_complete(self, arr_name):
         return self.cli.array_list(arr_name)
 
-    def DeviceList(self):
+    def device_list(self):
         return self.cli.device_list()
 
-    def AddSpare(self, arr_name, dev_name):
+    def add_spare(self, arr_name, dev_name):
         return self.cli.array_add_spare(arr_name, dev_name)
 
-    def SetRebuildImpact(self, impact):
+    def set_rebuild_impact(self, impact):
         return self.cli.system_set_property(impact)

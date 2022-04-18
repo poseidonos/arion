@@ -44,3 +44,13 @@ async def async_run(cmd, ignore_err=False):
         lib.printer.red(cmd)
         raise Exception(err_str)
     return out.decode("utf-8")
+
+
+def parallel_run(cmd_list):
+    asyncio.set_event_loop(asyncio.new_event_loop())
+    loop = asyncio.get_event_loop()
+    tasks = asyncio.gather(*[
+        lib.subproc.async_run(cmd, True) for cmd in cmd_list
+    ])
+    loop.run_until_complete(tasks)
+    loop.close()

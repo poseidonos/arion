@@ -193,12 +193,12 @@ def play(json_targets, json_inits, json_scenario):
     # trigger rebuild
     arr_name = json_target["POS"]["ARRAYs"][0]["NAME"]
     target_obj = targets["Target01"]
-    target_obj.PcieScan()
+    target_obj.pcie_scan()
     device_list = []
     for tc in testcase:
         # create device list
         device_list = []
-        ret = target_obj.DeviceList()
+        ret = target_obj.device_list()
         for line in ret.split('\n'):
             tokens = line.split('|')
             if 'unvme' in tokens[0]:
@@ -208,7 +208,7 @@ def play(json_targets, json_inits, json_scenario):
             try:
                 # set rebuild impact level
                 print("start rebuild with rebuild impact " + tc[3])
-                ret = target_obj.SetRebuildImpact(tc[3])
+                ret = target_obj.set_rebuild_impact(tc[3])
 
                 # run fio
                 fio_cmd, output = create_fio(
@@ -224,11 +224,11 @@ def play(json_targets, json_inits, json_scenario):
                 skip_workload = True
         # detach device to trigger rebuild
         device_to_detach = 0
-        target_obj.DetachDevice(device_list[device_to_detach])
+        target_obj.detach_device(device_list[device_to_detach])
 
         # wait until rebuild finishes
         while(True):
-            ret = target_obj.CheckRebuildComplete(arr_name)
+            ret = target_obj.check_rebuild_complete(arr_name)
             if ('Situation           : REBUILDING' in ret):
                 print("rebuilding")
             if ('Situation           : NORMAL' in ret):
@@ -249,13 +249,13 @@ def play(json_targets, json_inits, json_scenario):
                 skip_workload = True
 
         # reattach device as spare for next tc
-        target_obj.PcieScan()
-        ret = target_obj.DeviceList()
+        target_obj.pcie_scan()
+        ret = target_obj.device_list()
 
         for line in ret.split('\n'):
             tokens = line.split('|')
             if ('unvme' in tokens[0]) and ('SYSTEM' in tokens[3]):
-                target_obj.AddSpare(arr_name, tokens[0])
+                target_obj.add_spare(arr_name, tokens[0])
                 break
 
         print(tc, "retuild complete")

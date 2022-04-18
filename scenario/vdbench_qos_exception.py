@@ -128,7 +128,7 @@ def wait_vdbench_event(test_vdbench, initiators, current_time):
             vd_disk_names = vdbench_elem["vd_disk_names"]
             for key in initiators:
                 #init = initiators[key]
-                #volume_id_list = init.GetVolumeIdOfDevice(vd_disk_names[key])
+                #volume_id_list = init.get_volume_id_of_device(vd_disk_names[key])
                 result_array = pos.qos.GetResultQos(
                     test_vdbench, key, vd_disk_names[key], "bw", vdbench_elem["workload"])
                 result[key] = result_array

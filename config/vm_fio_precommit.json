@@ -156,7 +156,7 @@
     "Scenarios": [
         {
             "NAME": "fio_precommit",
-            "OUTPUT_DIR": "/home/psd/ibofos/tool/arion/output",
+            "OUTPUT_DIR": "./output",
             "SUBPROC_LOG": true
         }
     ]

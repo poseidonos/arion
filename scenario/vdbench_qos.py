@@ -244,7 +244,7 @@ def play(json_targets, json_inits, json_scenario):
                     else:
                         for key in initiators:
                             init = initiators[key]
-                            volume_id_list = init.GetVolumeIdOfDevice(
+                            volume_id_list = init.get_volume_id_of_device(
                                 vd_disk_names[key])
                             throttle_success = pos.qos.CheckEachVolume(
                                 key, limit, vd_disk_names[key], first_init_vdbench, workload_name, volume_id_list, limit["min"])

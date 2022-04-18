@@ -25,8 +25,9 @@ class Initiator:
             self.vdbench_dir = ""
         self.targets = json["TARGETs"]
 
-    def Prepare(self) -> None:
-        lib.printer.green(f" {__name__}.Prepare : {self.name}")
+    def bring_up(self) -> None:
+        lib.printer.green(f" {__name__}.bring_up start : {self.name}")
+
         if (self.prereq and self.prereq["CPU"]["RUN"]):
             prerequisite.cpu.Scaling(
                 self.id, self.pw, self.nic_ssh, self.prereq["CPU"]["SCALING"])
@@ -54,27 +55,27 @@ class Initiator:
             self.id, self.pw, self.nic_ssh, self.output_dir)
         pos.env.make_directory(self.id, self.pw, self.nic_ssh, self.output_dir)
 
-        self.ConnectKDD()
-        lib.printer.green(f" '{self.name}' prepared")
+        self.connect_kdd()
+        lib.printer.green(f" {__name__}.bring_up end : {self.name}")
 
-    def Wrapup(self) -> None:
-        self.DisconnetKDD()
-        lib.printer.green(f" '{self.name}' wrapped up")
+    def wrap_up(self) -> None:
+        self.disconnet_kdd()
+        lib.printer.green(f" {__name__}.wrap_up end : {self.name}")
 
-    def DisconnetKDD(self) -> None:
+    def disconnet_kdd(self) -> None:
         for tgt in self.targets:
             if tgt.get("KDD_MODE") and tgt["KDD_MODE"]:
-                self.DisconnectNvme(tgt)
+                self.disconnect_nvme(tgt)
 
-    def ConnectKDD(self) -> None:
+    def connect_kdd(self) -> None:
         for tgt in self.targets:
             if tgt.get("KDD_MODE") and tgt["KDD_MODE"]:
-                self.DisconnectNvme(tgt)
-                self.DiscoverNvme(tgt)
-                self.ConnectNvme(tgt)
-                self.ListNvme(tgt)
+                self.disconnect_nvme(tgt)
+                self.discover_nvme(tgt)
+                self.connect_nvme(tgt)
+                self.list_nvme(tgt)
 
-    def DisconnectNvme(self, target) -> None:
+    def disconnect_nvme(self, target) -> None:
         for subsys in target["SUBSYSTEMs"]:
             nqn_index = subsys["NQN_INDEX"]
             for i in range(subsys["NUM_SUBSYSTEMS"]):
@@ -84,12 +85,12 @@ class Initiator:
                     sudo nvme disconnect -n {nqn}"
                 lib.subproc.sync_run(cmd)
 
-    def DiscoverNvme(self, target) -> None:
+    def discover_nvme(self, target) -> None:
         cmd = f"sshpass -p {self.pw} ssh -o StrictHostKeyChecking=no {self.id}@{self.nic_ssh} \
                     sudo nvme discover -t {target['TRANSPORT']} -a {target['IP']} -s {target['PORT']}"
         lib.subproc.sync_run(cmd)
 
-    def ConnectNvme(self, target) -> None:
+    def connect_nvme(self, target) -> None:
         for subsys in target["SUBSYSTEMs"]:
             nqn_index = subsys["NQN_INDEX"]
             for i in range(subsys["NUM_SUBSYSTEMS"]):
@@ -99,7 +100,7 @@ class Initiator:
                     sudo nvme connect -n {nqn} -t {target['TRANSPORT']} -a {target['IP']} -s {target['PORT']}"
                 lib.subproc.sync_run(cmd)
 
-    def ListNvme(self, target) -> None:
+    def list_nvme(self, target) -> None:
         cmd = f"sshpass -p {self.pw} ssh -o StrictHostKeyChecking=no {self.id}@{self.nic_ssh} \
             sudo nvme list"
         device_list = lib.subproc.sync_run(cmd)
@@ -122,7 +123,7 @@ class Initiator:
                     break
         print(" KDD Dev List:", self.device_list)
 
-    def GetVolumeIdOfDevice(self, device_list):
+    def get_volume_id_of_device(self, device_list):
         volume_id_list = {}
         for key in device_list:
             cmd = f"sshpass -p {self.pw} ssh -o StrictHostKeyChecking=no {self.id}@{self.nic_ssh} \
