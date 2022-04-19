@@ -8,6 +8,7 @@ class Fio:
         self.initiator = initiator
         self.opt = {}
         self.jobs = []
+        self.linked_jobs = []
         self.kdd_mode = False
         self.timestamp = timestamp
 
@@ -44,7 +45,7 @@ class Fio:
         self.opt["log_unix_epoch"] = "1"
         self.opt["log_avg_msec"] = "1000"
 
-    def update(self, test_case):
+    def update(self, test_case, job_list=[]):
         self.opt["output"] = f"{self.initiator.output_dir}/{self.timestamp}_{test_case['name']}_{self.initiator.name}"
         self.opt["write_bw_log"] = self.opt["output"]
         self.opt["write_iops_log"] = self.opt["output"]
@@ -55,22 +56,30 @@ class Fio:
         if (self.opt["verify"] != "0"):
             if "-" in self.opt["bs"] and self.opt["norandommap"] != "0":
                 self.opt["norandommap"] = "0"
+        self.linked_jobs = job_list
 
     def stringify(self):
         str = f"sshpass -p {self.initiator.pw} ssh {self.initiator.id}@{self.initiator.nic_ssh} nohup 'fio"
         for key in self.opt:
             str += f" --{key}={self.opt[key]}"
-        for job in self.jobs:
-            str += job
+        if 0 == len(self.linked_jobs):
+            for job in self.jobs:
+                str += job
+        else:
+            for index in self.linked_jobs:
+                str += self.jobs[index - 1]
         str += f" > {self.opt['output']}.eta"
         str += "'"
         return str
 
     def add_kdd_jobs(self):
-        return
+        for device in self.initiator.device_list:
+            self.jobs.append(f" --name=job_{device} --filename={device}")
 
     def add_udd_jobs(self):
         for tgt in self.initiator.targets:
+            if tgt.get("KDD_MODE") and tgt["KDD_MODE"]:
+                continue
             for subsys in tgt["SUBSYSTEMs"]:
                 nqn_index = subsys["NQN_INDEX"]
                 for subsys_idx in range(subsys["NUM_SUBSYSTEMS"]):
@@ -78,8 +87,12 @@ class Fio:
                     ns = subsys["NS_INDEX"]
                     for ns_idx in range(subsys["NUM_NS"]):
                         self.jobs.append(
-                            f" --name=job_{tgt['NAME']}_{nqn}_{ns} --filename=\"trtype={tgt['TRANSPORT']} \
-                                adrfam=IPv4 traddr={tgt['IP']} trsvcid={tgt['PORT']} subnqn={nqn} ns={ns}\""
+                            (
+                                f" --name=job_{tgt['NAME']}_{nqn}_{ns}"
+                                f" --filename=\"trtype={tgt['TRANSPORT']}"
+                                f" adrfam=IPv4 traddr={tgt['IP']}"
+                                f" trsvcid={tgt['PORT']} subnqn={nqn} ns={ns}\""
+                            )
                         )
                         ns += 1
                     nqn_index += 1

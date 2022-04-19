@@ -45,6 +45,7 @@ def play(json_cfg_file):
         lib.printer.red(" ScenarioError: At least 1 scenario has to exist")
         sys.exit(1)
 
+    data = {}
     for scenario in config["Scenarios"]:
         try:
             module_name = "scenario." + scenario["NAME"]
@@ -79,8 +80,8 @@ def play(json_cfg_file):
                 f"{__name__} [AttributeError] '{module_name}' has no attribute 'play'")
             sys.exit(1)
         lib.printer.green(f"\n -- scenario: {scenario['NAME']} start --")
-        module.play(config["Targets"], config["Initiators"],
-                    scenario, timestamp)
+        data = module.play(config["Targets"], config["Initiators"],
+                           scenario, timestamp, data)
         lib.printer.green(f"\n -- scenario: {scenario['NAME']} end --")
 
     print(" --- [benchmark done] --- \n")

@@ -7,22 +7,23 @@ import traceback
 
 
 def play(json_targets, json_inits, json_scenario, timestamp, data):
-    node_manager = node.NodeManager(json_targets, json_inits)
-    targets, initiators = node_manager.initialize()
+    initiators = data["Initiators"]
+    graph_fio = data["GraphFio"]
 
-    graph_fio = graph.manager.Fio(
-        json_scenario["OUTPUT_DIR"], timestamp, __name__)
-
-    test_case_list = [
-        {"name": "1_write", "rw": "write", "bs": "128k",
-            "iodepth": "4", "time_based": "1", "runtime": "15"},
-        {"name": "2_read", "rw": "read", "bs": "128k",
-            "iodepth": "4", "time_based": "1", "runtime": "15"},
-        {"name": "3_randwrite", "rw": "randwrite", "bs": "4k",
-            "iodepth": "4", "time_based": "1", "runtime": "15"},
-        {"name": "4_randread", "rw": "randread", "bs": "4k",
-            "iodepth": "4", "time_based": "1", "runtime": "15"}
-    ]
+    bs_list = ["512", "4k", "128k", "512-128k"]
+    rw_list = ["write", "randwrite", "randrw"]
+    test_case_list = []
+    test_case_num = 1
+    for bs in bs_list:
+        for rw in rw_list:
+            test_case = {}
+            test_case["name"] = f"{test_case_num:02d}_{bs}_{rw}"
+            test_case["bs"] = bs
+            test_case["rw"] = rw
+            test_case["io_size"] = "100m"
+            test_case["verify"] = "md5"
+            test_case_num += 1
+            test_case_list.append(test_case)
 
     test_stop = False
     for test_case in test_case_list:
@@ -34,8 +35,8 @@ def play(json_targets, json_inits, json_scenario, timestamp, data):
         for key in initiators:
             try:
                 fio_cmd = iogen.fio.Fio(initiators[key], timestamp)
-                fio_cmd.initialize(True)  # kdd setting True
-                fio_cmd.update(test_case, [1, 3, 5])
+                fio_cmd.initialize()
+                fio_cmd.update(test_case)
                 fio_cmd_set.append(fio_cmd.stringify())
             except Exception as e:
                 lib.printer.red(traceback.format_exc())
@@ -59,7 +60,5 @@ def play(json_targets, json_inits, json_scenario, timestamp, data):
                 lib.printer.red(traceback.format_exc())
                 test_stop = True
                 break
-
-    node_manager.finalize()
 
     return data

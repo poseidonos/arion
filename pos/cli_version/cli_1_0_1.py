@@ -1,6 +1,5 @@
 import json
 import lib
-import subprocess
 from pos.cli_version import cli_interface
 
 

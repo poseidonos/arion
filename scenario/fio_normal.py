@@ -6,7 +6,7 @@ import node
 import traceback
 
 
-def play(json_targets, json_inits, json_scenario, timestamp):
+def play(json_targets, json_inits, json_scenario, timestamp, data):
     node_manager = node.NodeManager(json_targets, json_inits)
     targets, initiators = node_manager.initialize()
 
@@ -67,3 +67,5 @@ def play(json_targets, json_inits, json_scenario, timestamp):
                 break
 
     node_manager.finalize()
+
+    return data

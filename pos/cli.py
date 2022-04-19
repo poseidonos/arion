@@ -4,9 +4,11 @@ from pos.cli_version import *
 
 class Cli:
     def __init__(self, json, local_run):
-        cli_cmd = f"sshpass -p {json['PW']} ssh -o StrictHostKeyChecking=no \
-            {json['ID']}@{json['NIC']['SSH']} sudo nohup \
-            {json['POS']['DIR']}/bin/{json['POS']['CLI']} --version"
+        cli_cmd = (
+            f"sshpass -p {json['PW']} ssh -o StrictHostKeyChecking=no"
+            f" {json['ID']}@{json['NIC']['SSH']} sudo nohup"
+            f" {json['POS']['DIR']}/bin/{json['POS']['CLI']} --version"
+        )
         result = lib.subproc.sync_run(cli_cmd)
         if ("poseidonos-cli version 1.0.1" in result):
             self.cli = cli_1_0_1.Cli_1_0_1(json, local_run)

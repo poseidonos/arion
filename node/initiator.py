@@ -24,6 +24,7 @@ class Initiator:
         except Exception as e:
             self.vdbench_dir = ""
         self.targets = json["TARGETs"]
+        self.nvme_cli = lib.nvme.Cli(json)
 
     def bring_up(self) -> None:
         lib.printer.green(f" {__name__}.bring_up start : {self.name}")
@@ -81,14 +82,11 @@ class Initiator:
             for i in range(subsys["NUM_SUBSYSTEMS"]):
                 nqn = f"{subsys['NQN_PREFIX']}{nqn_index:03d}"
                 nqn_index += 1
-                cmd = f"sshpass -p {self.pw} ssh -o StrictHostKeyChecking=no {self.id}@{self.nic_ssh} \
-                    sudo nvme disconnect -n {nqn}"
-                lib.subproc.sync_run(cmd)
+                self.nvme_cli.disconnect_nqn(nqn)
 
     def discover_nvme(self, target) -> None:
-        cmd = f"sshpass -p {self.pw} ssh -o StrictHostKeyChecking=no {self.id}@{self.nic_ssh} \
-                    sudo nvme discover -t {target['TRANSPORT']} -a {target['IP']} -s {target['PORT']}"
-        lib.subproc.sync_run(cmd)
+        self.nvme_cli.discover(
+            target["TRANSPORT"], target["IP"], target["PORT"])
 
     def connect_nvme(self, target) -> None:
         for subsys in target["SUBSYSTEMs"]:
@@ -96,27 +94,20 @@ class Initiator:
             for i in range(subsys["NUM_SUBSYSTEMS"]):
                 nqn = f"{subsys['NQN_PREFIX']}{nqn_index:03d}"
                 nqn_index += 1
-                cmd = f"sshpass -p {self.pw} ssh -o StrictHostKeyChecking=no {self.id}@{self.nic_ssh} \
-                    sudo nvme connect -n {nqn} -t {target['TRANSPORT']} -a {target['IP']} -s {target['PORT']}"
-                lib.subproc.sync_run(cmd)
+                self.nvme_cli.connect(
+                    nqn, target["TRANSPORT"], target["IP"], target["PORT"])
 
     def list_nvme(self, target) -> None:
-        cmd = f"sshpass -p {self.pw} ssh -o StrictHostKeyChecking=no {self.id}@{self.nic_ssh} \
-            sudo nvme list"
-        device_list = lib.subproc.sync_run(cmd)
-        device_lines = device_list.split("\n")
-        device_num = len(device_lines)
-        find_device = False
-        for device_idx in range(2, device_num - 1):
+        device_json = self.nvme_cli.list("json")
+        for device in device_json["Devices"]:
             for subsys in target["SUBSYSTEMs"]:
                 sn_index = subsys["SN_INDEX"]
                 find_device = False
                 for i in range(subsys["NUM_SUBSYSTEMS"]):
                     sn = f"{subsys['SN_PREFIX']}{sn_index:03d}"
                     sn_index += 1
-                    if sn in device_lines[device_idx]:
-                        device_node = device_lines[device_idx].split(" ")[0]
-                        self.device_list.append(device_node)
+                    if sn == device["SerialNumber"]:
+                        self.device_list.append(device["DevicePath"])
                         find_device = True
                         break
                 if (find_device):
