@@ -162,6 +162,7 @@
     ],
     "Scenarios": [
         {
+            "PATH": "./tool/arion/scenario/fio_udd.py",
             "NAME": "fio_udd",
             "OUTPUT_DIR": "./output",
             "SUBPROC_LOG": true

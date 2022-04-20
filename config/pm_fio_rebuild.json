@@ -97,6 +97,7 @@
     ],
     "Scenarios": [
         {
+            "PATH": "./tool/arion/scenario/fio_rebuild.py",
             "NAME": "fio_rebuild",
             "OUTPUT_DIR": "/home/psd/ibofos/test/system/benchmark/output",
             "PRECONDITION": "yes"

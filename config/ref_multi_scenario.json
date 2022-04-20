@@ -98,16 +98,19 @@
     ],
     "Scenarios": [
         {
+            "PATH": "./tool/arion/scenario/ref_multi_scenario_setup.py",
             "NAME": "ref_multi_scenario_setup",
             "OUTPUT_DIR": "./output",
             "SUBPROC_LOG": true
         },
         {
+            "PATH": "./tool/arion/scenario/ref_multi_scenario_verification.py",
             "NAME": "ref_multi_scenario_verification",
             "OUTPUT_DIR": "./output",
             "SUBPROC_LOG": true
         },
         {
+            "PATH": "./tool/arion/scenario/ref_multi_scenario_wrapup.py",
             "NAME": "ref_multi_scenario_wrapup",
             "OUTPUT_DIR": "./output",
             "SUBPROC_LOG": true

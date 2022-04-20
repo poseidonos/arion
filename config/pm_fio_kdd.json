@@ -100,6 +100,7 @@
     ],
     "Scenarios": [
         {
+            "PATH": "./tool/arion/scenario/fio_kdd.py",
             "NAME": "fio_kdd",
             "OUTPUT_DIR": "./output",
             "SUBPROC_LOG": true

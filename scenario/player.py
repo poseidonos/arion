@@ -1,9 +1,10 @@
 from datetime import datetime
-import importlib
+import importlib.util
 import json
 import lib
 import os
 import sys
+import traceback
 
 
 def play(json_cfg_file):
@@ -48,37 +49,25 @@ def play(json_cfg_file):
     data = {}
     for scenario in config["Scenarios"]:
         try:
-            module_name = "scenario." + scenario["NAME"]
-        except KeyError:
-            lib.printer.red(
-                f"{__name__} [KeyError] JSON file Scenarios has no KEY 'NAME'")
-            sys.exit(1)
-
-        try:
             lib.subproc.sync_run(f"mkdir -p {scenario['OUTPUT_DIR']}")
             lib.subproc.sync_run(f"mkdir -p {scenario['OUTPUT_DIR']}/log")
-        except KeyError:
-            lib.printer.red(
-                f"{__name__} [KeyError] JSON file Scenarios has no KEY 'OUTPUT_DIR'")
-            sys.exit(1)
+
+            if (scenario.get("SUBPROC_LOG") and scenario["SUBPROC_LOG"]):
+                lib.subproc.set_print_log(True)
+
+            spec = importlib.util.spec_from_file_location(
+                scenario["NAME"], scenario["PATH"])
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
         except Exception as e:
-            lib.printer.red(f"{__name__} [Error] {e}")
-            sys.exit(1)
-
-        if (scenario.get("SUBPROC_LOG") and scenario["SUBPROC_LOG"]):
-            lib.subproc.set_print_log(True)
-
-        try:
-            module = importlib.import_module(module_name)
-        except ImportError:
-            lib.printer.red(
-                f"{__name__} [ImportError] '{module_name}' is not defined")
-            sys.exit(1)
+            lib.printer.red(traceback.format_exc())
+            break
 
         if not hasattr(module, "play"):
             lib.printer.red(
-                f"{__name__} [AttributeError] '{module_name}' has no attribute 'play'")
-            sys.exit(1)
+                f"{__name__} {scenario['NAME']} has no 'play' function")
+            break
+
         lib.printer.green(f"\n -- scenario: {scenario['NAME']} start --")
         data = module.play(config["Targets"], config["Initiators"],
                            scenario, timestamp, data)

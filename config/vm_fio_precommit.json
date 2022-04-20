@@ -155,6 +155,7 @@
     ],
     "Scenarios": [
         {
+            "PATH": "./tool/arion/scenario/fio_precommit.py",
             "NAME": "fio_precommit",
             "OUTPUT_DIR": "./output",
             "SUBPROC_LOG": true

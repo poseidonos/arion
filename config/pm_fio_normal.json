@@ -297,6 +297,7 @@
     ],
     "Scenarios": [
         {
+            "PATH": "./tool/arion/scenario/fio_normal.py",
             "NAME": "fio_normal",
             "OUTPUT_DIR": "./output",
             "SUBPROC_LOG": true
