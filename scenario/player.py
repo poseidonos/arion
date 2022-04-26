@@ -7,22 +7,11 @@ import sys
 import traceback
 
 
-def play(json_cfg_file):
+def play(config):
     print("\n --- [benchmark start] --- ")
-    print("open json cfg file: " + json_cfg_file)
 
     date_now = datetime.now()
     timestamp = date_now.strftime("%y%m%d_%H%M%S")
-
-    try:
-        with open(json_cfg_file, "r") as f:
-            config = json.load(f)
-    except IOError:
-        lib.printer.red(f"{__name__} [IOError] No such file or directory")
-        sys.exit(1)
-    except json.decoder.JSONDecodeError as e:
-        lib.printer.red(f"{__name__} [JSONDecodeError] {e}")
-        sys.exit(1)
 
     if "Targets" not in config:
         lib.printer.red(
@@ -49,11 +38,11 @@ def play(json_cfg_file):
     data = {}
     for scenario in config["Scenarios"]:
         try:
-            lib.subproc.sync_run(f"mkdir -p {scenario['OUTPUT_DIR']}")
-            lib.subproc.sync_run(f"mkdir -p {scenario['OUTPUT_DIR']}/log")
-
             if (scenario.get("SUBPROC_LOG") and scenario["SUBPROC_LOG"]):
                 lib.subproc.set_print_log(True)
+
+            lib.subproc.sync_run(f"mkdir -p {scenario['OUTPUT_DIR']}")
+            lib.subproc.sync_run(f"mkdir -p {scenario['OUTPUT_DIR']}/log")
 
             spec = importlib.util.spec_from_file_location(
                 scenario["NAME"], scenario["PATH"])

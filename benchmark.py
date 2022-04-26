@@ -1,5 +1,12 @@
 import scenario
 import lib
 
-config_data = lib.parser.ArgParser()
-scenario.player.play(config_data.GetConfig())
+arg_data = lib.parser.ArgParser()
+
+config_file = arg_data.get_config()
+config = lib.parser.parse_config_file(config_file)
+
+define = arg_data.get_define()
+lib.parser.define_to_config(define, config)
+
+scenario.player.play(config)
