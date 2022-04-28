@@ -138,7 +138,7 @@
                 {
                     "NAME": "Target01",
                     "TRANSPORT": "tcp",
-                    "IP": "127.0.0.1",
+                    "IP": "IP1",
                     "PORT": 1158,
                     "SUBSYSTEMs": [
                         {
@@ -158,6 +158,7 @@
             "PATH": "./tool/arion/scenario/fio_precommit.py",
             "NAME": "fio_precommit",
             "OUTPUT_DIR": "./output",
+            "RESULT_FORMAT": "junit_xml",
             "SUBPROC_LOG": true
         }
     ]

@@ -1,8 +1,18 @@
+from pathlib import Path
 import argparse
 import json
 import lib
 import os
 import sys
+
+
+def parse_json_file(file_path):
+    str_data = Path(file_path).read_text()
+    index = str_data.find('{')
+    if index == -1:
+        return {}
+    else:
+        return json.loads(str_data[index:])
 
 
 def parse_config_file(file_path):
@@ -12,10 +22,13 @@ def parse_config_file(file_path):
             config = json.load(f)
     except IOError:
         lib.printer.red(f"{__name__} [IOError] No such file or directory")
+        f.close()
         sys.exit(1)
     except json.decoder.JSONDecodeError as e:
         lib.printer.red(f"{__name__} [JSONDecodeError] {e}")
+        f.close()
         sys.exit(1)
+    f.close()
     return config
 
 

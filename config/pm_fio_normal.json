@@ -212,7 +212,7 @@
                 {
                     "NAME": "Target01",
                     "TRANSPORT": "tcp",
-                    "IP": "10.100.2.12",
+                    "IP": "IP1",
                     "PORT": 1158,
                     "SUBSYSTEMs": [
                         {
@@ -280,7 +280,7 @@
                 {
                     "NAME": "Target01",
                     "TRANSPORT": "tcp",
-                    "IP": "10.100.21.12",
+                    "IP": "IP2",
                     "PORT": 1159,
                     "SUBSYSTEMs": [
                         {
@@ -300,6 +300,7 @@
             "PATH": "./tool/arion/scenario/fio_normal.py",
             "NAME": "fio_normal",
             "OUTPUT_DIR": "./output",
+            "RESULT_FORMAT": "junit_xml",
             "SUBPROC_LOG": true
         }
     ]

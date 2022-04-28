@@ -13,6 +13,7 @@ def play(config):
     date_now = datetime.now()
     timestamp = date_now.strftime("%y%m%d_%H%M%S")
 
+    # config verification
     if "Targets" not in config:
         lib.printer.red(
             f"{__name__} [KeyError] JSON file has no KEY 'Targets'")
@@ -35,11 +36,45 @@ def play(config):
         lib.printer.red(" ScenarioError: At least 1 scenario has to exist")
         sys.exit(1)
 
+    # first access check
+    for target in config["Targets"]:
+        try:
+            cmd = (
+                f"sshpass -p {target['PW']} "
+                f"ssh -o StrictHostKeyChecking=no "
+                f"{target['ID']}@{target['NIC']['SSH']} "
+                f"sudo nohup uname -a"
+            )
+            lib.printer.yellow(lib.subproc.sync_run(cmd))
+        except Exception as e:
+            lib.printer.yellow(traceback.format_exc())
+    for initiator in config["Initiators"]:
+        try:
+            cmd = (
+                f"sshpass -p {initiator['PW']} "
+                f"ssh -o StrictHostKeyChecking=no "
+                f"{initiator['ID']}@{initiator['NIC']['SSH']} "
+                f"sudo nohup uname -a"
+            )
+            lib.printer.yellow(lib.subproc.sync_run(cmd))
+        except Exception as e:
+            lib.printer.yellow(traceback.format_exc())
+
+    # ip update
+    for target in config["Targets"]:
+        for subsys in target["POS"]["SUBSYSTEMs"]:
+            subsys["IP"] = target["NIC"][subsys["IP"]]
+    for initiator in config["Initiators"]:
+        for tgt in initiator["TARGETs"]:
+            for target in config["Targets"]:
+                if target["NAME"] == tgt["NAME"]:
+                    tgt["IP"] = target["NIC"][tgt["IP"]]
+
     data = {}
     for scenario in config["Scenarios"]:
         try:
-            if (scenario.get("SUBPROC_LOG") and scenario["SUBPROC_LOG"]):
-                lib.subproc.set_print_log(True)
+            if scenario.get("SUBPROC_LOG"):
+                lib.subproc.set_print_log(scenario["SUBPROC_LOG"])
 
             lib.subproc.sync_run(f"mkdir -p {scenario['OUTPUT_DIR']}")
             lib.subproc.sync_run(f"mkdir -p {scenario['OUTPUT_DIR']}/log")

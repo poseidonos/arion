@@ -114,7 +114,7 @@ class Target:
                 sn_index += 1
                 self.cli.subsystem_create(nqn, sn)
                 self.cli.subsystem_add_listener(
-                    nqn, self.pos_tp, self.json["NIC"][subsys["IP"]], subsys["PORT"])
+                    nqn, self.pos_tp, subsys["IP"], subsys["PORT"])
 
         # Step 3.2. device create, scan, list
         for dev in self.json["POS"]["DEVICEs"]:

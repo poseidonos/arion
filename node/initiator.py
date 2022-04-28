@@ -114,6 +114,20 @@ class Initiator:
                     break
         print(" KDD Dev List:", self.device_list)
 
+    def copy_output(self, timestamp, test_name, destination):
+        lib.subproc.sync_run((
+            f"sshpass -p {self.pw} scp {self.id}@{self.nic_ssh}:{self.output_dir}/"
+            f"{timestamp}_{test_name}_{self.name} {destination}"
+        ))
+        lib.subproc.sync_run((
+            f"sshpass -p {self.pw} scp {self.id}@{self.nic_ssh}:{self.output_dir}/"
+            f"{timestamp}_{test_name}_{self.name}.eta {destination}"
+        ))
+        lib.subproc.sync_run((
+            f"sshpass -p {self.pw} scp {self.id}@{self.nic_ssh}:{self.output_dir}/"
+            f"{timestamp}_{test_name}_{self.name}*.log {destination}/log"
+        ))
+
     def get_volume_id_of_device(self, device_list):
         volume_id_list = {}
         for key in device_list:
