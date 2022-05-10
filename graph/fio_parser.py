@@ -31,11 +31,27 @@ def get_eta_data(data, file, title):
             if "-" in percentage:
                 continue
             bandwidth = strings[3].split(",")
-            bw_read = bandwidth[0].split("=")[1].split("iB/s")[0]
-            bw_write = bandwidth[1].split("=")[1].split("iB/s")[0]
+            bw_read = "0"
+            bw_write = "0"
+            if len(bandwidth) == 2:
+                bw_read = bandwidth[0].split("=")[1].split("iB/s")[0]
+                bw_write = bandwidth[1].split("=")[1].split("iB/s")[0]
+            elif len(bandwidth) == 1:
+                if "r=" in bandwidth[0]:
+                    bw_read = bandwidth[0].split("=")[1].split("iB/s")[0]
+                elif "w=" in bandwidth[0]:
+                    bw_write = bandwidth[0].split("=")[1].split("iB/s")[0]
             iops = strings[4].split(",")
-            iops_read = iops[0].split("=")[1]
-            iops_write = iops[1].split("=")[1].split(" ")[0]
+            iops_read = "0"
+            iops_write = "0"
+            if len(iops) == 2:
+                iops_read = iops[0].split("=")[1]
+                iops_write = iops[1].split("=")[1].split(" ")[0]
+            elif len(iops) == 1:
+                if "r=" in iops[0]:
+                    iops_read = iops[0].split("=")[1].split(" ")[0]
+                elif "w=" in iops[0]:
+                    iops_write = iops[0].split("=")[1].split(" ")[0]
             data[title]["x"].append(float(percentage))
             data[title]["bw_read"].append(to_float(bw_read))
             data[title]["bw_write"].append(to_float(bw_write))

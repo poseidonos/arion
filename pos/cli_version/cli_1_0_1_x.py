@@ -3,7 +3,7 @@ import lib
 from pos.cli_version import cli_interface
 
 
-class Cli_1_0_1(cli_interface.CliInterface):
+class Cli_1_0_1_x(cli_interface.CliInterface):
     def __init__(self, json, local_run):
         prefix_list = []
         if not local_run:
@@ -29,13 +29,9 @@ class Cli_1_0_1(cli_interface.CliInterface):
         cli_cmd = self.prefix + f"array addspare -a {arr_name} -s {dev_name}"
         return self._send_cli(cli_cmd)
 
-    def array_create(self, buffer_dev, user_devs, spare_devs, arr_name, raid_type):
-        if 0 == len(spare_devs):
-            cli_cmd = self.prefix + \
-                f"array create -b {buffer_dev} -d {user_devs} --array-name {arr_name} --raid {raid_type}"
-        else:
-            cli_cmd = self.prefix + \
-                f"array create -b {buffer_dev} -d {user_devs} -s {spare_devs} --array-name {arr_name} --raid {raid_type}"
+    def array_create(self, buffer_dev, user_devs, spare_devs, arr_name, media_type):
+        cli_cmd = self.prefix + \
+            f"array create -d {user_devs} --array-name {arr_name} --media-type {media_type}"
         return self._send_cli(cli_cmd)
 
     def array_list(self, arr_name):
@@ -157,4 +153,9 @@ class Cli_1_0_1(cli_interface.CliInterface):
     def volume_mount(self, vol_name, subnqn, arr_name):
         cli_cmd = self.prefix + \
             f"volume mount --volume-name {vol_name} --array-name {arr_name} --subnqn {subnqn} --force"
+        return self._send_cli(cli_cmd)
+
+    def nvme_copy(self, dst_array, dst_volume, dst_lba, src_arrays, src_volumes, src_lbas, src_blocks):
+        cli_cmd = self.prefix + \
+            f"nvme copy --dst-array {dst_array} --dst-volume {dst_volume} --dst-slba {dst_lba} --src-arrays {src_arrays} --src-volumes {src_volumes} --src-lbas {src_lbas} --src-blocks {src_blocks}"
         return self._send_cli(cli_cmd)
