@@ -43,6 +43,18 @@ class CliInterface(metaclass=ABCMeta):
         pass
 
     @abstractmethod
+    def logger_apply_filter(self):
+        pass
+
+    @abstractmethod
+    def logger_get_level(self):
+        pass
+
+    @abstractmethod
+    def logger_info(self):
+        pass
+
+    @abstractmethod
     def logger_set_level(self, level):
         pass
 
@@ -67,7 +79,15 @@ class CliInterface(metaclass=ABCMeta):
         pass
 
     @abstractmethod
+    def subsystem_delete(self, nqn):
+        pass
+
+    @abstractmethod
     def subsystem_list(self):
+        pass
+
+    @abstractmethod
+    def system_info(self):
         pass
 
     @abstractmethod

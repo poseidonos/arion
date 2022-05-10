@@ -9,11 +9,17 @@ class Cli:
             f" {json['ID']}@{json['NIC']['SSH']} sudo nohup"
             f" {json['POS']['DIR']}/bin/{json['POS']['CLI']} --version"
         )
-        result = lib.subproc.sync_run(cli_cmd)
-        if ("poseidonos-cli version 1.0.1" in result):
-            self.cli = cli_1_0_1.Cli_1_0_1(json, local_run)
-        else:
-            raise ValueError(f"Not supported poseidonos-cli version: {result}")
+        try:
+            result = lib.subproc.sync_run(cli_cmd)
+            if ("poseidonos-cli version 1.0.1" in result):
+                self.cli = cli_1_0_1.Cli_1_0_1(json, local_run)
+            else:
+                raise ValueError(
+                    f"Not supported poseidonos-cli version: {result}")
+        except Exception as e:
+            lib.printer.red(
+                f"{__name__} [Error] poseidonos-cli --version does not exists, but temporarily using cli_1_0_1_x.")
+            self.cli = cli_1_0_1_x.Cli_1_0_1_x(json, local_run)
 
     def array_add_spare(self, arr_name, dev_name):
         return self.cli.array_add_spare(arr_name, dev_name)
