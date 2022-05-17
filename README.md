@@ -1,17 +1,12 @@
 # ARION
 
-ARION is a test framework that supports to use 3rd-party benchmark tools such as fio, vdbench, and so on. ARION abstracts and maintains many settings(kernel, poseidonos-cli, nvme-cli, ...) so that user can focus on test scenario itself.
+ARION is a test framework that supports to use 3rd-party benchmark tools in the same manner. ARION abstracts and maintains many interfaces(kernel, poseidonos-cli, nvme-cli, ...) so that user can focus on test scenario itself.
+
+
 
 ## 1. Install requirements
 
 If it's first time to use ARION, you need to check your python version is higher than 3.6.
-
-### pip setting (~/.config/pip/pip.conf) for Samsung Intranet
-```
-[global]
-index-url = http://repo.samsungds.net:8081/artifactory/api/pypi/pypi/simple
-trusted-host = repo.samsungds.net
-```
 
 ### Update pip
 ```bash
@@ -23,122 +18,135 @@ pip3 install pip --upgrade # pip version should be higher than 21.3.1
 pip3 install -r requirements.txt
 ```
 
-## 2. Setup
 
-### Configuration
+
+## 2. Configuration
+
+In ARION configuration, user can compose multi-POS topology(array, volume, subsystem, ...), multi-host(initiator) back-end storage, test scenarios. For more details: [ARION config guide](config/README.md)
+
 ```json
 {
     "Targets": [
         {
-            "NAME": "Target01",
-            "ID": "user",
+            "NAME": "target name",
+            "ID": "account",
             "PW": "password",
-            "DIR": "pos_directory",
             "NIC": {
-                "SSH": "nic_ip_for_ssh",
-                "IP1": "nic_ip_for_test"
+                "SSH": "ip address for sshpass",
+                "IP1": "ip address for testing"
             },
-            "SPDK": {
+            "POS": {
+                "DIR": "pos root directory",
+                "BIN": "poseidonos",
+                "CLI": "poseidonos-cli",
+                "CFG": "pos.conf",
+                "LOG": "pos.log",
+                "TELEMETRY": false,
+                "LOGGER_LEVEL": "info",
                 "TRANSPORT": {
                     "TYPE": "tcp",
                     "NUM_SHARED_BUFFER": 4096
                 },
                 "SUBSYSTEMs": [
                     {
-                        "NQN": "nqn.2020-10.pos\\:subsystem01",
-                        "SN": "POS00000000000001",
-                        "IP": "IP1",
-                        "PORT": 1158
-                    },
-                    {
-                        "NQN": "nqn.2020-10.pos\\:subsystem02",
-                        "SN": "POS00000000000002",
-                        "IP": "IP1",
-                        "PORT": 1158
-                    },
-                    {
-                        "NQN": "nqn.2020-10.pos\\:subsystem03",
-                        "SN": "POS00000000000003",
+                        "NUM_SUBSYSTEMS": 3,
+                        "NQN_PREFIX": "nqn.2022-04.pos:subsystem",
+                        "NQN_INDEX": 1,
+                        "SN_PREFIX": "POS00000000000",
+                        "SN_INDEX": 1,
                         "IP": "IP1",
                         "PORT": 1158
                     }
-                ]
-            },
-            "POS": {
-                "BIN": "poseidonos",
-                "CLI": "poseidonos-cli",
-                "CFG": "pos.conf",
-                "LOG": "pos.log",
+                ],
+                "DEVICEs": [
+                    {
+                        "NAME": "uram0",
+                        "TYPE": "uram",
+                        "NUM_BLOCKS": 2097152,
+                        "BLOCK_SIZE": 512,
+                        "NUMA": 0
+                    }
+                ],
                 "ARRAYs": [
                     {
                         "NAME": "ARR0",
-                        "RAID_TYPE": "RAID5",
+                        "RAID_OR_MEDIA": "RAID5",
+                        "WRITE_THROUGH": false,
                         "USER_DEVICE_LIST": "unvme-ns-0,unvme-ns-1,unvme-ns-2",
                         "SPARE_DEVICE_LIST": "unvme-ns-3",
-                        "BUFFER_DEVICE": {
-                            "NAME": "uram0",
-                            "TYPE": "uram",
-                            "NUM_BLOCKS": 2097152,
-                            "BLOCK_SIZE": 512,
-                            "NUMA": 0
-                        },
+                        "BUFFER_DEV": "uram0",
                         "VOLUMEs": [
                             {
-                                "NAME": "VOL1",
-                                "SIZE": 2147483648,
-                                "SUBNQN": "nqn.2020-10.pos:subsystem01"
-                            },
-                            {
-                                "NAME": "VOL2",
-                                "SIZE": 2147483648,
-                                "SUBNQN": "nqn.2020-10.pos:subsystem02"
-                            },
-                            {
-                                "NAME": "VOL3",
-                                "SIZE": 2147483648,
-                                "SUBNQN": "nqn.2020-10.pos:subsystem03"
+                                "NUM_VOLUMES": 3,
+                                "NAME_PREFIX": "VOL",
+                                "NAME_INDEX": 1,
+                                "SIZE_MiB": 2048,
+                                "USE_SUBSYSTEMS": 3,
+                                "NQN_PREFIX": "nqn.2022-04.pos:subsystem",
+                                "NQN_INDEX": 1
                             }
                         ]
                     }
                 ]
-            },
-            "AUTO_GENERATE": {
-                "USE": "no"
             }
         }
     ],
     "Initiators": [
         {
-            "NAME": "Initiator01",
-            "ID": "user",
+            "NAME": "initiator name",
+            "ID": "account",
             "PW": "password",
             "NIC": {
-                "SSH": "nic_ip_for_ssh"
+                "SSH": "ip address for sshpass"
             },
             "SPDK": {
-                "DIR": "spdk_directory",
+                "DIR": "spdk root directory",
                 "TRANSPORT": "tcp"
-            }
+            },
+            "TARGETs": [
+                {
+                    "NAME": "target name",
+                    "TRANSPORT": "tcp",
+                    "IP": "target's IP key(in NIC object) for testing",
+                    "PORT": 1158,
+                    "SUBSYSTEMs": [
+                        {
+                            "NUM_SUBSYSTEMS": 3,
+                            "NQN_PREFIX": "nqn.2022-04.pos\\:subsystem",
+                            "NQN_INDEX": 1,
+                            "NUM_NS": 1,
+                            "NS_INDEX": 1
+                        }
+                    ]
+                }
+            ]
         }
     ],
     "Scenarios": [
         {
-            "NAME": "fio_precommit",
-            "OUTPUT_DIR": "./output"
+            "PATH": "scenario_path/scenario_name.py",
+            "NAME": "scenario_name",
+            "OUTPUT_DIR": "./output",
+            "RESULT_FORMAT": "junit_xml",
+            "SUBPROC_LOG": true
         }
     ]
 }
 ```
 
-## 3. Test Benchmark
+
+
+## 3. Run ARION
 
 ```bash
-python3 benchmark.py --config [CONFIG_FILE]
+python3 tool/arion/benchmark.py [-h] -c CONFIG [-d DEFINE]
 ```
 
-## 4. Test unittest
+
+
+## 4. Unit Test
 
 ```bash
-python3 -m unittest # test all tc
-python3 -m unittest test/specific_file.py # test specific tc
+python3 -m unittest # run all tc
+python3 -m unittest test/specific_file.py # run specific tc
 ```

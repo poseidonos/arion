@@ -1,20 +1,20 @@
 import lib
 
 
-def IrqBalance(id, pw, ip, opt):
-    lib.printer.green(f" + {__name__}.IrqBalance : {opt}")
+def irq_balance(id, pw, ip, opt):
+    lib.printer.green(f" + {__name__}.irq_balance : {opt}")
     if (not "start" == opt and not "stop" == opt):
-        lib.printer.red(f"{__name__}.IrqBalance valid option: start/stop")
+        lib.printer.red(f"{__name__}.irq_balance valid option: start/stop")
         return
     irq_balance = f"sshpass -p {pw} ssh -o StrictHostKeyChecking=no {id}@{ip} \
         sudo systemctl {opt} irqbalance.service"
     lib.subproc.sync_run(irq_balance)
 
 
-def TcpTune(id, pw, ip, opt):
-    lib.printer.green(f" + {__name__}.TcpTune : {opt}")
+def tcp_tune(id, pw, ip, opt):
+    lib.printer.green(f" + {__name__}.tcp_tune : {opt}")
     if (not "min" == opt and not "max" == opt):
-        lib.printer.red(f"{__name__}.TcpTune valid option: min/max")
+        lib.printer.red(f"{__name__}.tcp_tune valid option: min/max")
         return
 
     core_mem = "268435456"
@@ -72,8 +72,8 @@ def TcpTune(id, pw, ip, opt):
     lib.subproc.sync_run(tcp_slow_start_after_idle)
 
 
-def IrqAffinity(id, pw, ip, opt, pos_dir):
-    lib.printer.green(f" + {__name__}.IrqAffinity : {opt}")
+def irq_affinity(id, pw, ip, opt, pos_dir):
+    lib.printer.green(f" + {__name__}.irq_affinity : {opt}")
     for info in opt:
         nic_node = None
         get_nic_node = f"sshpass -p {pw} ssh -o StrictHostKeyChecking=no {id}@{ip} \
@@ -86,8 +86,8 @@ def IrqAffinity(id, pw, ip, opt, pos_dir):
         lib.subproc.sync_run(set_irq_aff)
 
 
-def Nic(id, pw, ip, opt):
-    lib.printer.green(f" + {__name__}.Nic : {opt}")
+def nic(id, pw, ip, opt):
+    lib.printer.green(f" + {__name__}.nic : {opt}")
     for info in opt:
         set_nic = f"sshpass -p {pw} ssh -o StrictHostKeyChecking=no {id}@{ip} \
             sudo ifconfig {info['INTERFACE']} {info['IP']}/{info['NETMASK']} mtu {info['MTU']}"

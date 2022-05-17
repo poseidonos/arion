@@ -2,8 +2,8 @@ import asyncio
 import lib
 
 
-def Format(id, pw, ip, opt, udev_file, spdk_dir, pos_dir):
-    lib.printer.green(f" + {__name__}.Format : {opt}")
+def format(id, pw, ip, opt, udev_file, spdk_dir, pos_dir):
+    lib.printer.green(f" + {__name__}.format : {opt}")
     if (not opt):
         return
     blk_list = ""
