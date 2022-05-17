@@ -75,6 +75,8 @@ def play(config):
         try:
             if scenario.get("SUBPROC_LOG"):
                 lib.subproc.set_print_log(scenario["SUBPROC_LOG"])
+            else:
+                lib.subproc.set_print_log(False)
 
             lib.subproc.sync_run(f"mkdir -p {scenario['OUTPUT_DIR']}")
             lib.subproc.sync_run(f"mkdir -p {scenario['OUTPUT_DIR']}/log")

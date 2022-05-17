@@ -25,32 +25,12 @@ class Initiator:
             self.vdbench_dir = ""
         self.targets = json["TARGETs"]
         self.nvme_cli = lib.nvme.Cli(json)
+        self.prereq_manager = prerequisite.manager.Manager(json, self.spdk_dir)
 
     def bring_up(self) -> None:
         lib.printer.green(f" {__name__}.bring_up start : {self.name}")
 
-        if (self.prereq and self.prereq["CPU"]["RUN"]):
-            prerequisite.cpu.Scaling(
-                self.id, self.pw, self.nic_ssh, self.prereq["CPU"]["SCALING"])
-        if (self.prereq and self.prereq["MEMORY"]["RUN"]):
-            prerequisite.memory.MaxMapCount(
-                self.id, self.pw, self.nic_ssh, self.prereq["MEMORY"]["MAX_MAP_COUNT"])
-            prerequisite.memory.DropCaches(
-                self.id, self.pw, self.nic_ssh, self.prereq["MEMORY"]["DROP_CACHES"])
-        if (self.prereq and self.prereq["NETWORK"]["RUN"]):
-            prerequisite.network.IrqBalance(
-                self.id, self.pw, self.nic_ssh, self.prereq["NETWORK"]["IRQ_BALANCE"])
-            if self.prereq["NETWORK"].get("TCP_TUNE"):
-                prerequisite.network.TcpTune(
-                    self.id, self.pw, self.nic_ssh, self.prereq["NETWORK"]["TCP_TUNE"])
-            prerequisite.network.Nic(
-                self.id, self.pw, self.nic_ssh, self.prereq["NETWORK"]["NICs"])
-        if (self.prereq and self.prereq["MODPROBE"]["RUN"]):
-            prerequisite.modprobe.Modprobe(
-                self.id, self.pw, self.nic_ssh, self.prereq["MODPROBE"]["MODs"])
-        if (self.prereq and self.prereq["SPDK"]["RUN"]):
-            prerequisite.spdk.Setup(
-                self.id, self.pw, self.nic_ssh, self.prereq["SPDK"], self.spdk_dir)
+        self.prereq_manager.run()
 
         pos.env.remove_directory(
             self.id, self.pw, self.nic_ssh, self.output_dir)

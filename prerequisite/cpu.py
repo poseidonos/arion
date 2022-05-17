@@ -1,13 +1,13 @@
 import lib
 
 
-def Scaling(id, pw, ip, opt):
-    lib.printer.green(f" + {__name__}.Scaling : {opt}")
+def scaling(id, pw, ip, opt):
+    lib.printer.green(f" + {__name__}.scaling : {opt}")
     num_core = 0
     frequency = "1000000"
     governor = "performance"
     if (not "min" == opt and not "max" == opt):
-        lib.printer.red(f"{__name__}.Scaling valid option: min/max")
+        lib.printer.red(f"{__name__}.scaling valid option: min/max")
         return
     if ("min" == opt):
         governor = "ondemand"
