@@ -85,6 +85,9 @@ class Cli:
     def volume_create(self, vol_name, vol_size, arr_name, maxiops=0, maxbw=0):
         return self.cli.volume_create(vol_name, vol_size, arr_name, maxiops, maxbw)
 
+    def volume_list(self, arr_name, vol_name=""):
+        return self.cli.volume_list(arr_name, vol_name)
+
     def volume_mount(self, vol_name, subnqn, arr_name):
         return self.cli.volume_mount(vol_name, subnqn, arr_name)
 

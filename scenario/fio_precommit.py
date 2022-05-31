@@ -9,7 +9,7 @@ import traceback
 
 def play(tgts, inits, scenario, timestamp, data):
     try:  # Prepare sequence
-        node_manager = node.NodeManager(tgts, inits)
+        node_manager = node.node.NodeManager(tgts, inits)
         targets, initiators = node_manager.initialize()
 
         bs_list = ["512", "4k", "128k", "512-128k"]
@@ -29,7 +29,7 @@ def play(tgts, inits, scenario, timestamp, data):
 
         grapher = graph.manager.Grapher(scenario, timestamp)
         result_fmt = rsfmt.manager.Formatter(scenario, timestamp)
-        result_fmt.add_test_cases(test_case_list)
+        result_fmt.add_test_cases([tc['name'] for tc in test_case_list])
     except Exception as e:
         lib.printer.red(traceback.format_exc())
         return data
@@ -47,7 +47,7 @@ def play(tgts, inits, scenario, timestamp, data):
             # run fio
             lib.printer.green(f" run -> {timestamp} {test_case['name']}")
             result_fmt.start_test(test_case["name"])
-            lib.subproc.parallel_run(fio_cmd_list)
+            lib.subproc.sync_parallel_run(fio_cmd_list, True)
 
             # copy output
             for key in initiators:
@@ -69,7 +69,6 @@ def play(tgts, inits, scenario, timestamp, data):
             # draw graph
             for key in initiators:
                 grapher.draw(initiators[key], test_case["name"])
-
     except Exception as e:
         lib.printer.red(traceback.format_exc())
 

@@ -1,4 +1,4 @@
-#from node.initiator import *
+from abc import *
 import json
 import lib
 import node
@@ -52,3 +52,29 @@ class NodeManager:
                 return
             init_name = json_init["NAME"]
             self.initiators[init_name] = init_obj
+
+
+class Node(metaclass=ABCMeta):
+    @abstractmethod
+    def bring_up(self):
+        pass
+
+    @abstractmethod
+    def wrap_up(self):
+        pass
+
+    @abstractmethod
+    def sync_run(self, cmd, ignore_err, sh):
+        pass
+
+    @abstractmethod
+    def sync_parallel_run(self, cmd_list, ignore_err, sh):
+        pass
+
+    @abstractmethod
+    def async_run(self, cmd, ignore_err, sh):
+        pass
+
+    @abstractmethod
+    def async_parallel_run(self, cmd_list, ignore_err, sh):
+        pass

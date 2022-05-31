@@ -185,7 +185,7 @@ Each object in the list is constructed as shown in the table below.
 | CLI           | string  | Mandatory | POS CLI name                                                 |
 | CLI_LOCAL_RUN | boolean | Optional  | Default value: `false`<br />If true, bypass sshpass to compose POS<br />It executes more faster than using sshpass<br />Caution: ARION must be executed in the target node |
 | CFG           | string  | Mandatory | POS config name                                              |
-| LOG           | string  | Mandatory | POS log file name                                            |
+| LOG           | string  | Optional  | Default value: `None`<br />If set log filename, append log to pos/script/log_filename |
 | TELEMETRY     | boolean | Optional  | Default value: `true`                                        |
 | LOGGER_LEVEL  | string  | Optional  | Default value: `info`<br />Valid value: `info`, `debug`, `warning`, `error`, `critical` |
 | DIRTY_BRINGUP | boolean | Optional  | Default value: `false`                                       |
@@ -246,6 +246,8 @@ Each object in the list is constructed as shown in the table below.
 | USE_SUBSYSTEMS | int    | Mandatory | Number of subsystems to mount these volumes                  |
 | NQN_PREFIX     | string | Mandatory | Prefix of NQN to mount                                       |
 | NQN_INDEX      | int    | Mandatory | Start index of NQN to mount<br />This value will be suffix of name with :03d format<br />This value increases one by one until it reaches the USE_SUBSYSTEMS<br />If NUM_VOLUMES > USE_SUBSYSTEMS, NQN_INDEX follows round-robin policy |
+| MAX_IOPS       | int    | Optional  | Default value: `0`<br />Maximum IOPS per volume in Kilo      |
+| MAX_BW         | int    | Optional  | Default value: `0`<br />Maximum bandwidth per volume in MB/s |
 
 
 

@@ -1,3 +1,4 @@
+from node import node
 import json
 import lib
 import os
@@ -6,7 +7,7 @@ import prerequisite
 import time
 
 
-class Target:
+class Target(node.Node):
     def __init__(self, json):
         self.json = json
         self.name = json["NAME"]
@@ -19,7 +20,10 @@ class Target:
         self.pos_dir = json["POS"]["DIR"]
         self.pos_bin = json["POS"]["BIN"]
         self.pos_cfg = json["POS"]["CFG"]
-        self.pos_log = json["POS"]["LOG"]
+        try:
+            self.pos_log = json["POS"]["LOG"]
+        except Exception as e:
+            self.pos_log = ""
         try:
             self.pos_dirty_bringup = json["POS"]["DIRTY_BRINGUP"]
         except Exception as e:
@@ -38,6 +42,10 @@ class Target:
             self.cli_local_run = False
         self.cli = pos.cli.Cli(json, self.cli_local_run)
         self.prereq_manager = prerequisite.manager.Manager(json, self.spdk_dir)
+        self.cmd_prefix = (
+            f"sshpass -p {self.pw} ssh -o StrictHostKeyChecking=no "
+            f"{self.id}@{self.nic_ssh} sudo nohup "
+        )
 
     def bring_up(self) -> None:
         lib.printer.green(f" {__name__}.bring_up start : {self.name}")
@@ -121,7 +129,14 @@ class Target:
                     if (nqn_index >= vol["NQN_INDEX"] + vol["USE_SUBSYSTEMS"]):
                         nqn_index = vol["NQN_INDEX"]
                     size = vol["SIZE_MiB"] * 1048576
-                    self.cli.volume_create(name, size, arr["NAME"])
+                    max_iops = 0
+                    max_bw = 0
+                    if vol.get("MAX_IOPS"):
+                        max_iops = vol["MAX_IOPS"]
+                    if vol.get("MAX_BW"):
+                        max_bw = vol["MAX_BW"]
+                    self.cli.volume_create(
+                        name, size, arr["NAME"], max_iops, max_bw)
                     self.cli.volume_mount(name, nqn, arr["NAME"])
 
         json_obj = json.loads(self.cli.subsystem_list())
@@ -133,6 +148,20 @@ class Target:
             self.cli.array_unmount(array["NAME"])
         self.cli.system_stop()
         lib.printer.green(f" {__name__}.wrapp_up end : {self.name}")
+
+    def sync_run(self, cmd, ignore_err=False, sh=True):
+        return lib.subproc.sync_run(f"{self.cmd_prefix}{cmd}", ignore_err, sh)
+
+    def sync_parallel_run(self, cmd_list, ignore_err=False, sh=True):
+        cmds = [f"{self.cmd_prefix}{cmd}" for cmd in cmd_list]
+        return lib.subproc.sync_parallel_run(cmds, ignore_err, sh)
+
+    def async_run(self, cmd, ignore_err=False, sh=True):
+        return lib.subproc.async_run(f"{self.cmd_prefix}{cmd}", ignore_err, sh)
+
+    def async_parallel_run(self, cmd_list, ignore_err=False, sh=True):
+        cmds = [f"{self.cmd_prefix}{cmd}" for cmd in cmd_list]
+        return lib.subproc.async_parallel_run(cmds, ignore_err, sh)
 
     def forced_exit(self) -> None:
         pos.env.kill_pos(self.id, self.pw, self.nic_ssh, self.pos_bin)
