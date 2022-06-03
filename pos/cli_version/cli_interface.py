@@ -111,5 +111,9 @@ class CliInterface(metaclass=ABCMeta):
         pass
 
     @abstractmethod
+    def volume_list(self, arr_name, vol_name):
+        pass
+
+    @abstractmethod
     def volume_mount(self, vol_name, subnqn, arr_name):
         pass

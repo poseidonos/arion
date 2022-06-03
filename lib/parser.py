@@ -10,8 +10,10 @@ def parse_json_file(file_path):
     str_data = Path(file_path).read_text()
     index = str_data.find('{')
     if index == -1:
-        return {}
+        raise Exception(f"Unexpected error: {str_data}")
     else:
+        if index != 0:
+            raise Exception(f"Unexpected error: {str_data[:index]}")
         return json.loads(str_data[index:])
 
 

@@ -11,17 +11,17 @@ class Formatter:
         else:
             self.fmt = rsfmt.junit_xml.JunitXml(scenario, timestamp)
 
-    def add_test_cases(self, tc_list):
-        self.fmt.add_test_cases(tc_list)
+    def add_test_case(self, name, status="error"):
+        self.fmt.add_test_case(name, status)
 
-    def start_test(self, tc_name):
-        self.fmt.start_test(tc_name)
+    def add_test_cases(self, name_list, status="error"):
+        self.fmt.add_test_cases(name_list, status)
 
-    def end_test(self, tc_name, status, message=""):
-        if status == "pass" or status == "fail":
-            self.fmt.end_test(tc_name, status, message)
-        else:
-            raise Exception("status value has to be 'pass' or 'fail'")
+    def start_test(self, name):
+        self.fmt.start_test(name)
+
+    def end_test(self, name, status, message=""):
+        self.fmt.end_test(name, status, message)
 
     def write_file(self):
         self.fmt.write_file()

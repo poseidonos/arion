@@ -1,4 +1,4 @@
-import asyncio
+from concurrent import futures
 import lib
 import subprocess
 
@@ -31,26 +31,26 @@ def sync_run(cmd, ignore_err=False, sh=True):
     return out.decode("utf-8")
 
 
-async def async_run(cmd, ignore_err=False):
-    print_log(cmd)
-    proc = await asyncio.create_subprocess_shell(
-        cmd,
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE
-    )
-    (out, err) = await proc.communicate()
-    err_str = err.decode("utf-8")
-    if not ignore_err and 0 < len(err_str):
-        lib.printer.red(cmd)
-        raise Exception(err_str)
-    return out.decode("utf-8")
+def sync_parallel_run(cmd_list, ignore_err=False, sh=True):
+    results = []
+    with futures.ThreadPoolExecutor() as executor:
+        tasks = [executor.submit(sync_run, cmd, ignore_err, sh)
+                 for cmd in cmd_list]
+    for task in futures.as_completed(tasks):
+        results.append(task.result())
+    return results
 
 
-def parallel_run(cmd_list):
-    asyncio.set_event_loop(asyncio.new_event_loop())
-    loop = asyncio.get_event_loop()
-    tasks = asyncio.gather(*[
-        lib.subproc.async_run(cmd, True) for cmd in cmd_list
-    ])
-    loop.run_until_complete(tasks)
-    loop.close()
+def async_run(cmd, ignore_err=False, sh=True):
+    thread = lib.thread.ThreadReturnable(target=sync_run,
+                                         args=(cmd, ignore_err, sh))
+    thread.start()
+    return thread
+
+
+def async_parallel_run(cmd_list, ignore_err=False, sh=True):
+    threads = [lib.thread.ThreadReturnable(target=sync_run,
+                                           args=(cmd, ignore_err, sh))
+               for cmd in cmd_list]
+    [thread.start() for thread in threads]
+    return threads

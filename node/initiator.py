@@ -1,10 +1,11 @@
+from node import node
 import json
 import lib
 import pos
 import prerequisite
 
 
-class Initiator:
+class Initiator(node.Node):
     def __init__(self, json):
         self.json = json
         self.name = json["NAME"]
@@ -26,6 +27,10 @@ class Initiator:
         self.targets = json["TARGETs"]
         self.nvme_cli = lib.nvme.Cli(json)
         self.prereq_manager = prerequisite.manager.Manager(json, self.spdk_dir)
+        self.cmd_prefix = (
+            f"sshpass -p {self.pw} ssh -o StrictHostKeyChecking=no "
+            f"{self.id}@{self.nic_ssh} sudo nohup "
+        )
 
     def bring_up(self) -> None:
         lib.printer.green(f" {__name__}.bring_up start : {self.name}")
@@ -42,6 +47,20 @@ class Initiator:
     def wrap_up(self) -> None:
         self.disconnet_kdd()
         lib.printer.green(f" {__name__}.wrap_up end : {self.name}")
+
+    def sync_run(self, cmd, ignore_err=False, sh=True):
+        return lib.subproc.sync_run(f"{self.cmd_prefix}{cmd}", ignore_err, sh)
+
+    def sync_parallel_run(self, cmd_list, ignore_err=False, sh=True):
+        cmds = [f"{self.cmd_prefix}{cmd}" for cmd in cmd_list]
+        return lib.subproc.sync_parallel_run(cmds, ignore_err, sh)
+
+    def async_run(self, cmd, ignore_err=False, sh=True):
+        return lib.subproc.async_run(f"{self.cmd_prefix}{cmd}", ignore_err, sh)
+
+    def async_parallel_run(self, cmd_list, ignore_err=False, sh=True):
+        cmds = [f"{self.cmd_prefix}{cmd}" for cmd in cmd_list]
+        return lib.subproc.async_parallel_run(cmds, ignore_err, sh)
 
     def disconnet_kdd(self) -> None:
         for tgt in self.targets:

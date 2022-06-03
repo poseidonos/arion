@@ -141,7 +141,7 @@ def play(json_targets, json_inits, json_scenario):
             if not skip_workload:
                 try:
                     print(f" run -> {now_date}_fio_{bs}_{rw}")
-                    fio.manager.parallel_run(fio_cmdset)
+                    fio.manager.sync_parallel_run(fio_cmdset)
                 except Exception as e:
                     lib.printer.red(f"{__name__} [Error] {e}")
                     skip_workload = True

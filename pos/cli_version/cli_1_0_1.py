@@ -154,6 +154,12 @@ class Cli_1_0_1(cli_interface.CliInterface):
             f"volume create --volume-name {vol_name} --size {vol_size} --maxiops {maxiops} --maxbw {maxbw} --array-name {arr_name}"
         return self._send_cli(cli_cmd)
 
+    def volume_list(self, arr_name, vol_name):
+        cli_cmd = self.prefix + f"volume list --array-name {arr_name}"
+        if ("" != vol_name):
+            cli_cmd += f" --volume-name {vol_name}"
+        return self._send_cli(cli_cmd)
+
     def volume_mount(self, vol_name, subnqn, arr_name):
         cli_cmd = self.prefix + \
             f"volume mount --volume-name {vol_name} --array-name {arr_name} --subnqn {subnqn} --force"

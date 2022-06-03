@@ -46,7 +46,7 @@ def play(json_targets, json_inits, json_scenario, timestamp, data):
         # run fio
         try:
             lib.printer.green(f" run -> {timestamp} {test_case['name']}")
-            lib.subproc.parallel_run(fio_cmd_set)
+            lib.subproc.sync_parallel_run(fio_cmd_set, True)
         except Exception as e:
             lib.printer.red(traceback.format_exc())
             break

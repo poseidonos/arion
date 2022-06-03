@@ -14,6 +14,8 @@ class Fio:
 
     def initialize(self, kdd_mode=False):
         self.kdd_mode = kdd_mode
+        self.jobs.clear()
+        self.linked_jobs.clear()
         self.opt.clear()
         self.opt["numjobs"] = "1"
         self.opt["thread"] = "1"
@@ -78,8 +80,6 @@ class Fio:
 
     def add_udd_jobs(self):
         for tgt in self.initiator.targets:
-            if tgt.get("KDD_MODE") and tgt["KDD_MODE"]:
-                continue
             for subsys in tgt["SUBSYSTEMs"]:
                 nqn_index = subsys["NQN_INDEX"]
                 for subsys_idx in range(subsys["NUM_SUBSYSTEMS"]):
