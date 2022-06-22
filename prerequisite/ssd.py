@@ -1,4 +1,3 @@
-import asyncio
 import lib
 
 
@@ -50,15 +49,11 @@ def format(id, pw, ip, opt, udev_file, spdk_dir, pos_dir):
             sudo nvme format /dev/{nvme_disk} -s 1")
         nvme_disk_cnt += 1
         if (8 == nvme_disk_cnt):
-            asyncio.set_event_loop(asyncio.new_event_loop())
-            loop = asyncio.get_event_loop()
-            tasks = asyncio.gather(*[
-                lib.subproc.async_run(cmd, True) for cmd in nvme_format_cmds
-            ])
-            loop.run_until_complete(tasks)
-            loop.close()
+            lib.subproc.sync_parallel_run(nvme_format_cmds)
             nvme_format_cmds.clear()
             nvme_disk_cnt = 0
+    if (0 != nvme_disk_cnt):
+        lib.subproc.sync_parallel_run(nvme_format_cmds)
 
     # Get nvme device list to check(display) deivce usage
     nvme_list = f"sshpass -p {pw} ssh -o StrictHostKeyChecking=no {id}@{ip} \

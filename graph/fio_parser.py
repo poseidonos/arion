@@ -72,20 +72,32 @@ def get_result_data(data, file, title):
         data[1]["value"].append(dict_data["jobs"][0]["read"]["bw"])
         data[2]["value"].append(
             dict_data["jobs"][0]["read"]["clat_ns"]["mean"])
-        data[3]["value"].append(
-            dict_data["jobs"][0]["read"]["clat_ns"]["percentile"]["99.900000"])
-        data[4]["value"].append(
-            dict_data["jobs"][0]["read"]["clat_ns"]["percentile"]["99.990000"])
+        try:
+            data[3]["value"].append(
+                dict_data["jobs"][0]["read"]["clat_ns"]["percentile"]["99.900000"])
+        except Exception as e:
+            data[3]["value"].append(0)
+        try:
+            data[4]["value"].append(
+                dict_data["jobs"][0]["read"]["clat_ns"]["percentile"]["99.990000"])
+        except Exception as e:
+            data[4]["value"].append(0)
         data[5]["value"].append(
             dict_data["jobs"][0]["read"]["clat_ns"]["max"])
         data[6]["value"].append(dict_data["jobs"][0]["write"]["iops"])
         data[7]["value"].append(dict_data["jobs"][0]["write"]["bw"])
         data[8]["value"].append(
             dict_data["jobs"][0]["write"]["clat_ns"]["mean"])
-        data[9]["value"].append(
-            dict_data["jobs"][0]["write"]["clat_ns"]["percentile"]["99.900000"])
-        data[10]["value"].append(
-            dict_data["jobs"][0]["write"]["clat_ns"]["percentile"]["99.990000"])
+        try:
+            data[9]["value"].append(
+                dict_data["jobs"][0]["write"]["clat_ns"]["percentile"]["99.900000"])
+        except Exception as e:
+            data[9]["value"].append(0)
+        try:
+            data[10]["value"].append(
+                dict_data["jobs"][0]["write"]["clat_ns"]["percentile"]["99.990000"])
+        except Exception as e:
+            data[10]["value"].append(0)
         data[11]["value"].append(
             dict_data["jobs"][0]["write"]["clat_ns"]["max"])
 

@@ -21,6 +21,10 @@ class Target(node.Node):
         self.pos_bin = json["POS"]["BIN"]
         self.pos_cfg = json["POS"]["CFG"]
         try:
+            self.pos_wait = json["POS"]["WAIT_AFTER_EXE"]
+        except Exception as e:
+            self.pos_wait = 15
+        try:
             self.pos_log = json["POS"]["LOG"]
         except Exception as e:
             self.pos_log = ""
@@ -63,7 +67,10 @@ class Target(node.Node):
             self.id, self.pw, self.nic_ssh, self.pos_dir, self.pos_cfg)
         pos.env.execute_pos(self.id, self.pw, self.nic_ssh,
                             self.pos_bin, self.pos_dir, self.pos_log)
-        time.sleep(5)
+
+        lib.printer.yellow(
+            f"wait for {self.pos_wait} seconds until POS ready to handle CLI")
+        time.sleep(self.pos_wait)
 
         # Step 3. POS Setting
         self.cli.subsystem_create_transport(

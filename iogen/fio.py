@@ -1,3 +1,5 @@
+from packaging import version
+
 import asyncio
 import copy
 import lib
@@ -6,6 +8,7 @@ import lib
 class Fio:
     def __init__(self, initiator, timestamp):
         self.initiator = initiator
+        self.version = initiator.fio_version[4:].split("-")[0]
         self.opt = {}
         self.jobs = []
         self.linked_jobs = []
@@ -41,11 +44,13 @@ class Fio:
         self.opt["time_based"] = "0"
 
         self.opt["eta"] = "always"
+        if (version.parse(self.version) >= version.parse("3.3")):
+            self.opt["eta-interval"] = "2"
         self.opt["group_reporting"] = "1"
         self.opt["output-format"] = "json"
         self.opt["per_job_logs"] = "1"
         self.opt["log_unix_epoch"] = "1"
-        self.opt["log_avg_msec"] = "1000"
+        self.opt["log_avg_msec"] = "2000"
 
     def update(self, test_case, job_list=[]):
         self.opt["output"] = f"{self.initiator.output_dir}/{self.timestamp}_{test_case['name']}_{self.initiator.name}"
@@ -54,10 +59,16 @@ class Fio:
         self.opt["write_lat_log"] = self.opt["output"]
         for key in test_case:
             if key != "name":
+                if key == "eta-interval" and version.parse(self.version) < version.parse("3.3"):
+                    lib.printer.red((
+                        f"eta-interval option can be supported 3.3 or higher\n"
+                        f"current initiator's fio version: {self.version}"
+                    ))
+                    continue
                 self.opt[key] = test_case[key]
         if (self.opt["verify"] != "0"):
-            if "-" in self.opt["bs"] and self.opt["norandommap"] != "0":
-                self.opt["norandommap"] = "0"
+            self.opt["norandommap"] = "0"
+            self.opt["serialize_overlap"] = "0"
         self.linked_jobs = job_list
 
     def stringify(self):
