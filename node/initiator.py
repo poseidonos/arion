@@ -31,11 +31,15 @@ class Initiator(node.Node):
             f"sshpass -p {self.pw} ssh -o StrictHostKeyChecking=no "
             f"{self.id}@{self.nic_ssh} sudo nohup "
         )
+        self.fio_version = "not defined"
 
     def bring_up(self) -> None:
         lib.printer.green(f" {__name__}.bring_up start : {self.name}")
 
         self.prereq_manager.run()
+
+        self.fio_version = self.sync_run("fio --version")
+        lib.printer.yellow(f"fio version: {self.fio_version}")
 
         pos.env.remove_directory(
             self.id, self.pw, self.nic_ssh, self.output_dir)

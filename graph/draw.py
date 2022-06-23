@@ -5,48 +5,48 @@ import numpy as np
 import time
 
 
-def FormatLatency(y, idx=0):
+def FormatLatency(y, pos=1):
     if y >= 1e9:
-        return f"{round(y/1e9)}s"
+        return f"{round(y/1e9, pos)}s"
     elif y >= 1e6:
-        return f"{round(y/1e6)}ms"
+        return f"{round(y/1e6, pos)}ms"
     elif y >= 1e3:
-        return f"{round(y/1e3)}us"
+        return f"{round(y/1e3, pos)}us"
     else:
-        return f"{round(y)}ns"
+        return f"{round(y, pos)}ns"
 
 
-def FormatIOPS(y, idx=0):
+def FormatIOPS(y, pos=1):
     if y >= 1e9:
-        return f"{round(y/1e9)}Giops"
+        return f"{round(y/1e9, pos)}Giops"
     elif y >= 1e6:
-        return f"{round(y/1e6)}Miops"
+        return f"{round(y/1e6, pos)}Miops"
     elif y >= 1e3:
-        return f"{round(y/1e3)}Kiops"
+        return f"{round(y/1e3, pos)}Kiops"
     else:
-        return f"{round(y)}iops"
+        return f"{round(y, pos)}iops"
 
 
-def FormatBW(y, idx=0):
+def FormatBW(y, pos=1):
     if y >= 1e9:
-        return f"{round(y/1e9)}GiB/s"
+        return f"{round(y/1e9, pos)}GiB/s"
     elif y >= 1e6:
-        return f"{round(y/1e6)}MiB/s"
+        return f"{round(y/1e6, pos)}MiB/s"
     elif y >= 1e3:
-        return f"{round(y/1e3)}KiB/s"
+        return f"{round(y/1e3, pos)}KiB/s"
     else:
-        return f"{round(y)}B/s"
+        return f"{round(y, pos)}B/s"
 
 
-def FormatKBW(y, idx=0):
+def FormatKBW(y, pos=1):
     if y >= 1e9:
-        return f"{round(y/1e9)}TiB/s"
+        return f"{round(y/1e9, pos)}TiB/s"
     elif y >= 1e6:
-        return f"{round(y/1e6)}GiB/s"
+        return f"{round(y/1e6, pos)}GiB/s"
     elif y >= 1e3:
-        return f"{round(y/1e3)}MiB/s"
+        return f"{round(y/1e3, pos)}MiB/s"
     else:
-        return f"{round(y)}KiB/s"
+        return f"{round(y, pos)}KiB/s"
 
 
 def FormatSimpleFloat(y, pos=1):

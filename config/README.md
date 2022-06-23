@@ -178,21 +178,22 @@ Each object in the list is constructed as shown in the table below.
 
 ### 1.3. POS
 
-| Key           | Value   | Option    | Description                                                  |
-| ------------- | ------- | --------- | ------------------------------------------------------------ |
-| DIR           | string  | Mandatory | POS root directory                                           |
-| BIN           | string  | Mandatory | POS binary name                                              |
-| CLI           | string  | Mandatory | POS CLI name                                                 |
-| CLI_LOCAL_RUN | boolean | Optional  | Default value: `false`<br />If true, bypass sshpass to compose POS<br />It executes more faster than using sshpass<br />Caution: ARION must be executed in the target node |
-| CFG           | string  | Mandatory | POS config name                                              |
-| LOG           | string  | Optional  | Default value: `None`<br />If set log filename, append log to pos/script/log_filename |
-| TELEMETRY     | boolean | Optional  | Default value: `true`                                        |
-| LOGGER_LEVEL  | string  | Optional  | Default value: `info`<br />Valid value: `info`, `debug`, `warning`, `error`, `critical` |
-| DIRTY_BRINGUP | boolean | Optional  | Default value: `false`                                       |
-| TRANSPORT     | object  | Mandatory | Valid value: `tcp`, `rdma`                                   |
-| SUBSYSTEMs    | list    | Mandatory | POS subsystems information                                   |
-| DEVICEs       | list    | Mandatory | POS devices information                                      |
-| ARRAYs        | list    | Mandatory | POS arrays information                                       |
+| Key             | Value   | Option    | Description                                                  |
+| --------------- | ------- | --------- | ------------------------------------------------------------ |
+| DIR             | string  | Mandatory | POS root directory                                           |
+| BIN             | string  | Mandatory | POS binary name                                              |
+| CLI             | string  | Mandatory | POS CLI name                                                 |
+| CLI_LOCAL_RUN   | boolean | Optional  | Default value: `false`<br />If true, bypass sshpass to compose POS<br />It executes more faster than using sshpass<br />Caution: ARION must be executed in the target node |
+| CFG             | string  | Mandatory | POS config name                                              |
+| WAIT_AFTER_EXE  | int     | Optional  | Default value: `15`(s)<br /> After POS running, sleep for a while until POS ready to handle CLI |
+| LOG             | string  | Optional  | Default value: `None`<br />If set log filename, append log to pos/script/log_filename |
+| TELEMETRY       | boolean | Optional  | Default value: `true`                                        |
+| LOGGER_LEVEL    | string  | Optional  | Default value: `info`<br />Valid value: `info`, `debug`, `warning`, `error`, `critical` |
+| DIRTY_BRINGUP   | boolean | Optional  | Default value: `false`                                       |
+| TRANSPORT       | object  | Mandatory | Valid value: `tcp`, `rdma`                                   |
+| SUBSYSTEMs      | list    | Mandatory | POS subsystems information                                   |
+| DEVICEs         | list    | Mandatory | POS devices information                                      |
+| ARRAYs          | list    | Mandatory | POS arrays information                                       |
 
 #### 1.3.1. TRANSPORT
 
