@@ -1,5 +1,6 @@
 import json
 import lib
+import time
 from pos.cli_version import cli_interface
 
 
@@ -18,6 +19,11 @@ class Cli_1_0_1(cli_interface.CliInterface):
 
     def _send_cli(self, cmd):
         result = lib.subproc.sync_run(cmd)
+        while "try after a while" in result:
+            lib.printer.red("POS is busy, try again after a second")
+            time.sleep(1)
+            result = lib.subproc.sync_run(cmd)
+
         for line in result.splitlines():
             json_obj = json.loads(line)
             if (json_obj["Response"]["result"]["status"]["code"] != 0):
