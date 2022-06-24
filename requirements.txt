@@ -1,1 +1,2 @@
 matplotlib>=3.3.4
+packaging>=21.0
