@@ -65,8 +65,9 @@ class Target(node.Node):
             time.sleep(1)
         pos.env.copy_pos_config(
             self.id, self.pw, self.nic_ssh, self.pos_dir, self.pos_cfg)
-        pos.env.execute_pos(self.id, self.pw, self.nic_ssh,
-                            self.pos_bin, self.pos_dir, self.pos_log)
+        self.pos_exe_thread = pos.env.execute_pos(
+            self.id, self.pw, self.nic_ssh,
+            self.pos_bin, self.pos_dir, self.pos_log)
 
         lib.printer.yellow(
             f"wait for {self.pos_wait} seconds until POS ready to handle CLI")
@@ -154,6 +155,7 @@ class Target(node.Node):
         for array in self.json["POS"]["ARRAYs"]:
             self.cli.array_unmount(array["NAME"])
         self.cli.system_stop()
+        self.pos_exe_thread.join()
         lib.printer.green(f" {__name__}.wrapp_up end : {self.name}")
 
     def sync_run(self, cmd, ignore_err=False, sh=True):

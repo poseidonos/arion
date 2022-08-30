@@ -28,7 +28,7 @@ def execute_pos(id, pw, ip, bin, dir, log) -> None:
         exe_cmd += f" >> {dir}/script/{log}'"
     else:
         exe_cmd += "'"
-    return lib.subproc.async_run(exe_cmd)
+    return lib.subproc.async_run(exe_cmd, True)
 
 
 def remove_directory(id, pw, ip, dir) -> None:

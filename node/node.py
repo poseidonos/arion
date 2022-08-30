@@ -1,23 +1,39 @@
 from abc import *
-import json
+from typing import Tuple
 import lib
 import node
 import traceback
 
 
 class NodeManager:
-    def __init__(self, json_targets, json_initiators):
-        self.json_targets = json_targets
-        self.json_initiators = json_initiators
+    """ NodeManager delegates node rountine such as create, delete, bringup, wrapup, etc.
+    """
+
+    def __init__(self, target_list: list, initiator_list: list) -> None:
+        """ Initialize NodeManager object with targets & initiators info.
+
+        Args:
+            target_list (list): Targets info from config.
+            initiator_list (list): Initiators info from config.
+        """
+        self.target_list = target_list
+        self.initiator_list = initiator_list
         self.targets = {}
         self.initiators = {}
 
-    def initialize(self):
-        self.create_targets()
-        self.create_initiators()
+    def initialize(self) -> Tuple[dict, dict]:
+        """ Create Target objects and Initiator objects. Bring up each node.
+
+        Returns:
+            Tuple[dict, dict]: [Target dict with a target name as a key, Initiator dict with a initiator name as a key]
+        """
+        self.__create_targets()
+        self.__create_initiators()
         return self.targets, self.initiators
 
     def finalize(self) -> None:
+        """ Wrap up Target objects and Initiator objects.
+        """
         for key in self.initiators:
             try:
                 self.initiators[key].wrap_up()
@@ -30,27 +46,27 @@ class NodeManager:
             except Exception as e:
                 lib.printer.red(traceback.format_exc())
 
-    def create_targets(self) -> None:
-        for json_target in self.json_targets:
+    def __create_targets(self) -> None:
+        for target_dict in self.target_list:
             try:
-                target_obj = node.target.Target(json_target)
+                target_obj = node.target.Target(target_dict)
                 target_obj.bring_up()
             except Exception as e:
                 lib.printer.red(traceback.format_exc())
                 target_obj.forced_exit()
                 return
-            target_name = json_target["NAME"]
+            target_name = target_dict["NAME"]
             self.targets[target_name] = target_obj
 
-    def create_initiators(self) -> None:
-        for json_init in self.json_initiators:
+    def __create_initiators(self) -> None:
+        for init_dict in self.initiator_list:
             try:
-                init_obj = node.initiator.Initiator(json_init)
+                init_obj = node.initiator.Initiator(init_dict)
                 init_obj.bring_up()
             except Exception as e:
                 lib.printer.red(traceback.format_exc())
                 return
-            init_name = json_init["NAME"]
+            init_name = init_dict["NAME"]
             self.initiators[init_name] = init_obj
 
 
