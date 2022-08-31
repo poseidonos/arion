@@ -147,6 +147,6 @@ python3 tool/arion/benchmark.py [-h] -c CONFIG [-d DEFINE]
 ## 4. Unit Test
 
 ```bash
-python3 -m unittest # run all tc
-python3 -m unittest test/specific_file.py # run specific tc
+python3 -m unittest -v # run all tc
+python3 -m unittest test/specific_file.py -v # run specific tc
 ```

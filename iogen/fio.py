@@ -1,12 +1,17 @@
 from packaging import version
 
-import asyncio
-import copy
 import lib
+import node
 
 
 class Fio:
-    def __init__(self, initiator, timestamp):
+    def __init__(self, initiator: node.initiator.Initiator, timestamp: str) -> None:
+        """ Initialize Fio object with initiator data.
+
+        Args:
+            initiator (node.initiator.Initiator): Read some initiator info.
+            timestamp (str): Will be included in output file name.
+        """
         self.initiator = initiator
         self.version = initiator.fio_version[4:].split("-")[0]
         self.opt = {}
@@ -15,7 +20,12 @@ class Fio:
         self.kdd_mode = False
         self.timestamp = timestamp
 
-    def initialize(self, kdd_mode=False):
+    def initialize(self, kdd_mode: bool = False) -> None:
+        """ Set FIO default options.
+
+        Args:
+            kdd_mode (bool, optional): If True, FIO uses kernel library. Defaults to False.
+        """
         self.kdd_mode = kdd_mode
         self.jobs.clear()
         self.linked_jobs.clear()
@@ -52,7 +62,13 @@ class Fio:
         self.opt["log_unix_epoch"] = "1"
         self.opt["log_avg_msec"] = "2000"
 
-    def update(self, test_case, job_list=[]):
+    def update(self, test_case: dict, job_list: list = []) -> None:
+        """ Update test_case specific FIO options.
+
+        Args:
+            test_case (dict): key is a FIO option, value type has to be string type
+            job_list (list, optional): If set like [1, 3], connect 1st & 3rd job(subsystem)s among subsystems defined in this initiator's config. Defaults to [] (connect all).
+        """
         self.opt["output"] = f"{self.initiator.output_dir}/{self.timestamp}_{test_case['name']}_{self.initiator.name}"
         self.opt["write_bw_log"] = self.opt["output"]
         self.opt["write_iops_log"] = self.opt["output"]
@@ -71,7 +87,12 @@ class Fio:
             self.opt["serialize_overlap"] = "0"
         self.linked_jobs = job_list
 
-    def stringify(self):
+    def stringify(self) -> str:
+        """ Stringify FIO options
+
+        Returns:
+            str: fio run command
+        """
         str = f"sshpass -p {self.initiator.pw} ssh {self.initiator.id}@{self.initiator.nic_ssh} nohup 'fio"
         for key in self.opt:
             str += f" --{key}={self.opt[key]}"

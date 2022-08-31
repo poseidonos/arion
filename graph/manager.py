@@ -1,10 +1,19 @@
 import graph.draw
 import graph.fio_parser
-import lib
+import node
 
 
 class Grapher:
-    def __init__(self, scenario, timestamp):
+    """ Grapher is a abstract class to handle visualization.
+    """
+
+    def __init__(self, scenario: dict, timestamp: str) -> None:
+        """ Initialize Grapher object with scenario data.
+
+        Args:
+            scenario (dict): Parse output directory and scenario name.
+            timestamp (str): Will be included within file prefix.
+        """
         self.dir = scenario["OUTPUT_DIR"]
         self.title = scenario["NAME"]
         self.timestamp = timestamp
@@ -39,7 +48,13 @@ class Grapher:
         self.log_data["iops"] = {}
         self.log_data["clat"] = {}
 
-    def draw(self, initiator, test_name):
+    def draw(self, initiator: node.initiator.Initiator, test_name: str) -> None:
+        """ Draw graphs from FIO's raw files.
+
+        Args:
+            initiator (node.initiator.Initiator): Read some initiator info.
+            test_name (str): Will be used a part of filename.
+        """
         self.add_result_data(initiator, test_name)
         self.draw_result()
         self.add_eta_data(initiator, test_name)

@@ -5,67 +5,128 @@ import numpy as np
 import time
 
 
-def FormatLatency(y, pos=1):
-    if y >= 1e9:
-        return f"{round(y/1e9, pos)}s"
-    elif y >= 1e6:
-        return f"{round(y/1e6, pos)}ms"
-    elif y >= 1e3:
-        return f"{round(y/1e3, pos)}us"
+def FormatLatency(value: int, ndigits: int = 1) -> str:
+    """ Decorate with latency format (Unit: nano second)
+
+    Args:
+        value (int): Round a value to given precision in decimal digits.
+        ndigits (int, optional): Precision in decimal digits. Defaults to 1.
+
+    Returns:
+        str: Rounded value with latency format
+    """
+    if value >= 1e9:
+        return f"{round(value / 1e9, ndigits)}s"
+    elif value >= 1e6:
+        return f"{round(value / 1e6, ndigits)}ms"
+    elif value >= 1e3:
+        return f"{round(value / 1e3, ndigits)}us"
     else:
-        return f"{round(y, pos)}ns"
+        return f"{round(value, ndigits)}ns"
 
 
-def FormatIOPS(y, pos=1):
-    if y >= 1e9:
-        return f"{round(y/1e9, pos)}Giops"
-    elif y >= 1e6:
-        return f"{round(y/1e6, pos)}Miops"
-    elif y >= 1e3:
-        return f"{round(y/1e3, pos)}Kiops"
+def FormatIOPS(value: int, ndigits: int = 1) -> str:
+    """ Decorate with IOPS format (Unit: IO/s)
+
+    Args:
+        value (int): Round a value to given precision in decimal digits.
+        ndigits (int, optional): Precision in decimal digits. Defaults to 1.
+
+    Returns:
+        str: Rounded value with IOPS format
+    """
+    if value >= 1e9:
+        return f"{round(value / 1e9, ndigits)}Giops"
+    elif value >= 1e6:
+        return f"{round(value / 1e6, ndigits)}Miops"
+    elif value >= 1e3:
+        return f"{round(value / 1e3, ndigits)}Kiops"
     else:
-        return f"{round(y, pos)}iops"
+        return f"{round(value, ndigits)}iops"
 
 
-def FormatBW(y, pos=1):
-    if y >= 1e9:
-        return f"{round(y/1e9, pos)}GiB/s"
-    elif y >= 1e6:
-        return f"{round(y/1e6, pos)}MiB/s"
-    elif y >= 1e3:
-        return f"{round(y/1e3, pos)}KiB/s"
+def FormatBW(value: int, ndigits: int = 1) -> str:
+    """ Decorate with bandwidth format (Unit: Byte/s)
+
+    Args:
+        value (int): Round a value to given precision in decimal digits.
+        ndigits (int, optional): Precision in decimal digits. Defaults to 1.
+
+    Returns:
+        str: Rounded value with bandwidth format
+    """
+    if value >= 1e9:
+        return f"{round(value / 1e9, ndigits)}GiB/s"
+    elif value >= 1e6:
+        return f"{round(value / 1e6, ndigits)}MiB/s"
+    elif value >= 1e3:
+        return f"{round(value / 1e3, ndigits)}KiB/s"
     else:
-        return f"{round(y, pos)}B/s"
+        return f"{round(value, ndigits)}B/s"
 
 
-def FormatKBW(y, pos=1):
-    if y >= 1e9:
-        return f"{round(y/1e9, pos)}TiB/s"
-    elif y >= 1e6:
-        return f"{round(y/1e6, pos)}GiB/s"
-    elif y >= 1e3:
-        return f"{round(y/1e3, pos)}MiB/s"
+def FormatKBW(value: int, ndigits: int = 1) -> str:
+    """ Decorate with bandwidth format (Unit: Kilo-Byte/s)
+
+    Args:
+        value (int): Round a value to given precision in decimal digits.
+        ndigits (int, optional): Precision in decimal digits. Defaults to 1.
+
+    Returns:
+        str: Rounded value with bandwidth format
+    """
+    if value >= 1e9:
+        return f"{round(value / 1e9, ndigits)}TiB/s"
+    elif value >= 1e6:
+        return f"{round(value / 1e6, ndigits)}GiB/s"
+    elif value >= 1e3:
+        return f"{round(value / 1e3, ndigits)}MiB/s"
     else:
-        return f"{round(y, pos)}KiB/s"
+        return f"{round(value, ndigits)}KiB/s"
 
 
-def FormatSimpleFloat(y, pos=1):
-    if y >= 1e9:
-        return f"{round(y/1e9, pos)}"
-    elif y >= 1e6:
-        return f"{round(y/1e6, pos)}"
-    elif y >= 1e3:
-        return f"{round(y/1e3, pos)}"
+def FormatSimpleFloat(value: int, ndigits: int = 1) -> str:
+    """ Omit format.
+
+    Args:
+        value (int): Round a value to given precision in decimal digits.
+        ndigits (int, optional): Precision in decimal digits. Defaults to 1.
+
+    Returns:
+        str: Rounded value with simple prefix format
+    """
+    if value >= 1e9:
+        return f"{round(value / 1e9, ndigits)}"
+    elif value >= 1e6:
+        return f"{round(value / 1e6, ndigits)}"
+    elif value >= 1e3:
+        return f"{round(value / 1e3, ndigits)}"
     else:
-        return f"{round(y, pos)}"
+        return f"{round(value, ndigits)}"
 
 
-def FormatEpochTime(y, idx=0):
-    time_format = time.strftime("%H:%M:%S", time.localtime(y / 1000))
+def FormatEpochTime(value: int, ndigits: int = 0) -> str:
+    """ Decorate Epoch time to human readable string
+
+    Args:
+        value (int): Epoch time.
+        ndigits (int, optional): Never used. For funtion argument syntax.
+
+    Returns:
+        str: %H:%M:%S
+    """
+    time_format = time.strftime("%H:%M:%S", time.localtime(value / 1000))
     return time_format
 
 
-def DrawEta(data, pic_name, graph_list):
+def DrawEta(data: dict, pic_name: str, graph_list: list) -> None:
+    """ Draw some graphs based on FIO ETA data on the PNG file.
+
+    Args:
+        data (dict): Raw data.
+        pic_name (str): PNG file name prefix (pic_name_eta.png).
+        graph_list (list): Draw an individual graph at each subplot.
+    """
     try:
         plt.clf()  # plot 초기화
         num_graph = len(graph_list)
@@ -100,30 +161,13 @@ def DrawEta(data, pic_name, graph_list):
         plt.close(fig)
 
 
-def DrawResultDict(dict_data, pic_name, max_y, x_axis_label, y_axis_label):
-    fig = plt.figure(figsize=(12, 12))
-    try:
-        plt.clf()  # plot 초기화
-        plt.rcParams.update({'font.size': 22})
-        x_axis = []
-        plt.ylim(ymin=0.0, ymax=max_y)
-        plt.xlabel(x_axis_label)
-        plt.ylabel(y_axis_label)
-        for key in dict_data:
-            x_axis = []
-            for index in range(0, len(dict_data[key])):
-                x_axis.append(index)
-            plt.plot(x_axis, dict_data[key], label=key)
+def DrawResult(data: dict, pic_name: str) -> None:
+    """ Draw a set of graphs based on FIO result data on the PNG file.
 
-        plt.legend()
-        plt.savefig(f"output/{pic_name}_result.png", dpi=200)
-        plt.close(fig)
-    except Exception as e:
-        lib.printer.red(f"{__name__} [Error] {e}")
-        plt.close(fig)
-
-
-def DrawResult(data, pic_name):
+    Args:
+        data (dict): Raw data.
+        pic_name (str): PNG file name prefix (pic_name_result.png).
+    """
     try:
         plt.clf()  # plot 초기화
         fig = plt.figure(figsize=(12, 12))  # plot size 설정(unit: inch)
@@ -185,7 +229,14 @@ def DrawResult(data, pic_name):
         plt.close(fig)
 
 
-def DrawLogGraphWithType(data, pic_name, type):
+def DrawLogGraphWithType(data: dict, pic_name: str, type: str) -> None:
+    """ Draw individual job graphs based on FIO log data on the PNG file.
+
+    Args:
+        data (dict): Raw data.
+        pic_name (str): PNG file name.
+        type (str): Should be "iops" or "bw" or "lat".
+    """
     try:
         plt.clf()  # plot 초기화
         num_graph = len(data)
@@ -225,7 +276,13 @@ def DrawLogGraphWithType(data, pic_name, type):
         plt.close(fig)
 
 
-def DrawLog(data, pic_name):
+def DrawLog(data: dict, pic_name: str) -> None:
+    """ Draw some sets of graphs based on FIO log data on the PNG files.
+
+    Args:
+        data (dict): Raw data.
+        pic_name (str): PNG file name prefix (pic_name_per_job_xxx.png)
+    """
     DrawLogGraphWithType(data["iops"], f"{pic_name}_per_job_iops.png", "iops")
     DrawLogGraphWithType(data["bw"], f"{pic_name}_per_job_bw.png", "bw")
     DrawLogGraphWithType(data["clat"], f"{pic_name}_per_job_clat.png", "lat")

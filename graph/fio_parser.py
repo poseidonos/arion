@@ -3,17 +3,32 @@ import lib
 import os
 
 
-def to_float(str_val):
-    if "K" in str_val or "k" in str_val:
-        return 1000 * float(str_val[:len(str_val) - 1])
-    if "M" in str_val or "m" in str_val:
-        return 1000000 * float(str_val[:len(str_val) - 1])
-    if "G" in str_val or "g" in str_val:
-        return 1000000000 * float(str_val[:len(str_val) - 1])
-    return float(str_val)
+def to_float(value: str) -> float:
+    """ Convert to float.
+
+    Args:
+        value (str): Engineering notation.
+
+    Returns:
+        float: Converted value.
+    """
+    if "K" in value or "k" in value:
+        return 1000 * float(value[:len(value) - 1])
+    if "M" in value or "m" in value:
+        return 1000000 * float(value[:len(value) - 1])
+    if "G" in value or "g" in value:
+        return 1000000000 * float(value[:len(value) - 1])
+    return float(value)
 
 
-def get_eta_data(data, file, title):
+def get_eta_data(data: dict, file: str, title: str) -> None:
+    """ Get data fram FIO's eta file.
+
+    Args:
+        data (dict): Timeseries data will be saved.
+        file (str): FIO's eta file path + name.
+        title (str): Title of this eta data set will be a title of subplot.
+    """
     data[title] = {}  # title이 graph의 subplot 이고 빈 딕셔너리 생성
     data[title]["title"] = title  # subplot 이름 설정
     data[title]["x"] = []  # subplot x 축 빈 리스트 생성
@@ -60,7 +75,14 @@ def get_eta_data(data, file, title):
     fp.close()
 
 
-def get_result_data(data, file, title):
+def get_result_data(data: dict, file: str, title: str) -> None:
+    """ Get data from FIO's result file.
+
+    Args:
+        data (dict): Timeseries data will be saved.
+        file (str): FIO's result file path + name.
+        title (str): Title of this result data set will be a title of subplot.
+    """
     for i in range(len(data)):
         data[i]["index"].append(title)  # subplot 이름 설정
 
@@ -124,7 +146,14 @@ def get_single_log_file(data, file, index):
     fp.close()
 
 
-def get_log_data(data, dir, filename):
+def get_log_data(data: dict, dir: str, filename: str) -> None:
+    """ Get data from FIO's log file(s).
+
+    Args:
+        data (dict): Timeseries data will be saved.
+        dir (str): FIO's log file path.
+        filename (str): log file name prefix
+    """
     bw_file_prefix = f"{filename}_bw"
     iops_file_prefix = f"{filename}_iops"
     clat_file_prefix = f"{filename}_clat"

@@ -1,12 +1,26 @@
 from pathlib import Path
 import argparse
 import json
+from tokenize import String
 import lib
 import os
 import sys
 
 
-def parse_json_file(file_path):
+def parse_json_file(file_path: str) -> dict:
+    """ Read a file(should be JSON format) and return dict data.
+    If it's invalid, raise Exception with the raw file data.
+
+    Args:
+        file_path (str): file path and name
+
+    Raises:
+        Exception: _description_
+        Exception: _description_
+
+    Returns:
+        dict: load JSON to dict
+    """
     str_data = Path(file_path).read_text()
     index = str_data.find('{')
     if index == -1:
@@ -17,7 +31,15 @@ def parse_json_file(file_path):
         return json.loads(str_data[index:])
 
 
-def parse_config_file(file_path):
+def parse_config_file(file_path: str) -> dict:
+    """ Read config file(should be JSON format) and return dict data.
+
+    Args:
+        file_path (str): file path and name
+
+    Returns:
+        dict: load JSON to dict
+    """
     print(f"open json cfg file: {file_path}")
     try:
         with open(file_path, "r") as f:
@@ -34,35 +56,47 @@ def parse_config_file(file_path):
     return config
 
 
-def update_list(define, config):
-    for index, value in enumerate(define):
+def copy_list(src: list, dst: dict) -> None:
+    """ Copy from src list to dst dict.
+
+    Args:
+        src (list): source data
+        dst (dict): destination data
+    """
+    for index, value in enumerate(src):
         if isinstance(value, dict):
-            update_dict(value, config[index])
+            copy_dict(value, dst[index])
         elif isinstance(value, list):
-            update_list(value, config[index])
+            copy_list(value, dst[index])
 
 
-def update_dict(define, config):
-    for key, value in define.items():
-        if key not in config:
-            config[key] = value
+def copy_dict(src: dict, dst: dict) -> None:
+    """ Copy from src dict to dst dict.
+
+    Args:
+        src (dict): source data
+        dst (dict): destination data
+    """
+    for key, value in src.items():
+        if key not in dst:
+            dst[key] = value
         elif isinstance(value, dict):
-            update_dict(value, config[key])
+            copy_dict(value, dst[key])
         elif isinstance(value, list):
-            update_list(value, config[key])
+            copy_list(value, dst[key])
         else:
-            config[key] = value
-
-
-def define_to_config(define, config):
-    update_dict(define, config)
+            dst[key] = value
 
 
 class ArgParser:
+    """ Using argparse library, Provide Arg options
+    """
+
     def __init__(self):
         parser = argparse.ArgumentParser(description="benchmark options")
         parser.add_argument(
             "-c", "--config",
+            type=str,
             required=True,
             help="ARION specific json config file"
         )
@@ -74,8 +108,8 @@ class ArgParser:
         )
         self.args = parser.parse_args()
 
-    def get_config(self):
+    def get_config(self) -> str:
         return self.args.config
 
-    def get_define(self):
+    def get_define(self) -> dict:
         return self.args.define
