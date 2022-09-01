@@ -1,5 +1,5 @@
 {
-    "Targets": [
+    "TARGETs": [
         {
             "NAME": "Target01",
             "ID": "root",
@@ -122,7 +122,7 @@
             }
         }
     ],
-    "Initiators": [
+    "INITIATORs": [
         {
             "NAME": "Initiator01",
             "ID": "root",
@@ -153,7 +153,7 @@
             ]
         }
     ],
-    "Scenarios": [
+    "SCENARIOs": [
         {
             "PATH": "./tool/arion/scenario/fio_precommit.py",
             "NAME": "fio_precommit",

@@ -1,5 +1,5 @@
 {
-    "Targets": [
+    "TARGETs": [
         {
             "NAME": "Target01",
             "ID": "root",
@@ -157,7 +157,7 @@
             }
         }
     ],
-    "Initiators": [
+    "INITIATORs": [
         {
             "NAME": "Initiator01",
             "ID": "root",
@@ -295,7 +295,7 @@
             ]
         }
     ],
-    "Scenarios": [
+    "SCENARIOs": [
         {
             "PATH": "./tool/arion/scenario/fio_normal.py",
             "NAME": "fio_normal",

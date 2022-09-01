@@ -1,5 +1,5 @@
 {
-    "Targets": [
+    "TARGETs": [
         {
             "NAME": "Target01",
             "ID": "root",
@@ -60,7 +60,7 @@
             }
         }
     ],
-    "Initiators": [
+    "INITIATORs": [
         {
             "NAME": "Initiator01",
             "ID": "root",
@@ -77,7 +77,7 @@
             }
         }
     ],
-    "Scenarios": [
+    "SCENARIOs": [
         {
             "NAME": "vdbench_qos_exception",
             "OUTPUT_DIR": "./output",

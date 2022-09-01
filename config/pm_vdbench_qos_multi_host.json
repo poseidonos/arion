@@ -1,5 +1,5 @@
 {
-    "Targets": [
+    "TARGETs": [
         {
             "NAME": "Target01",
             "ID": "root",
@@ -88,14 +88,14 @@
             }
         }
     ],
-    "Initiators": [
+    "INITIATORs": [
         {
             "NAME": "Initiator01",
             "ID": "root",
             "PW": "psd",
             "NIC": {
                 "SSH": "10.1.4.39"
-            },
+            },``
             "SPDK": {
                 "DIR": "/home/psd/ibofos/lib/spdk",
                 "TRANSPORT": "tcp"
@@ -120,7 +120,7 @@
             }
         }
     ],
-    "Scenarios": [
+    "SCENARIOs": [
         {
             "NAME": "vdbench_qos",
             "OUTPUT_DIR": "./output",
