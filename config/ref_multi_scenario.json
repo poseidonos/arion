@@ -1,5 +1,5 @@
 {
-    "Targets": [
+    "TARGETs": [
         {
             "NAME": "Target01",
             "ID": "root",
@@ -65,7 +65,7 @@
             }
         }
     ],
-    "Initiators": [
+    "INITIATORs": [
         {
             "NAME": "Initiator01",
             "ID": "root",
@@ -96,7 +96,7 @@
             ]
         }
     ],
-    "Scenarios": [
+    "SCENARIOs": [
         {
             "PATH": "./tool/arion/scenario/ref_multi_scenario_setup.py",
             "NAME": "ref_multi_scenario_setup",

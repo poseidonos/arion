@@ -1,13 +1,13 @@
 # Configuration
 
-ARION provides a **specific JSON schemed** config file which consists of Targets, Initiators, and Scenarios.
+ARION provides a **specific JSON schemed** config file which consists of TARGETs, INITIATORs, and SCENARIOs.
 
-## 1. Targets
+## 1. TARGETs
 
-User can set up multiple target nodes within Targets' value as a list.
+User can set up multiple target nodes within TARGETs' value as a list.
 ```json
 {
-    "Targets": [
+    "TARGETs": [
         {
             "NAME": "Target01",
             "ID": "user account",
@@ -252,12 +252,12 @@ Each object in the list is constructed as shown in the table below.
 
 
 
-## 2. Initiators
+## 2. INITIATORs
 
-User can set up multiple initiator nodes within Initiators' value as a list.
+User can set up multiple initiator nodes within INITIATORs' value as a list.
 ```json
 {
-    "Initiators": [
+    "INITIATORs": [
         {
             "NAME": "Initiator01",
             "ID": "user account",
@@ -329,7 +329,7 @@ Each object in the list is constructed as shown in the table below.
 
 ### 2.2. PREREQUISITE
 
-Same as `Targets>PREREQUISITE` option
+Same as `TARGETs>PREREQUISITE` option
 
 
 
@@ -371,12 +371,12 @@ Through bring-up sequence, those subsystems will be automatically connected.
 
 
 
-## 3. Scenarios
+## 3. SCENARIOs
 
-User can set up multiple test scenarios within Scenarios' value as a list.
+User can set up multiple test scenarios within SCENARIOs' value as a list.
 ```json
 {
-    "Scenarios": [
+    "SCENARIOs": [
         {
             "PATH": "./relative_scenario_path/scenario_01.py",
             "NAME": "scenario_01",
@@ -387,7 +387,14 @@ User can set up multiple test scenarios within Scenarios' value as a list.
         {
             "PATH": "/absolute_scenario_path/scenario_02.py",
             "NAME": "scenario_02",
-            "OUTPUT_DIR": "./output_02"
+            "OUTPUT_DIR": "./output_02",
+            "TARGETs": [
+                {
+                    "POS": {
+                        "CFG": "pos_custom.conf"
+                    }
+                }
+            ]
         }
     ]
 }
@@ -395,10 +402,12 @@ User can set up multiple test scenarios within Scenarios' value as a list.
 
 Each object in the list is constructed as shown in the table below.
 
-| Key           | Value   | Option    | Description                                                  |
-| ------------- | ------- | --------- | ------------------------------------------------------------ |
-| PATH          | string  | Mandatory | Test scenario file path                                      |
-| NAME          | string  | Mandatory | Test scenario file name                                      |
-| OUTPUT_DIR    | string  | Mandatory | Directory where all output will be stored                    |
-| RESULT_FORMAT | string  | Optional  | Default value: `junit_xml`<br />Valid value: `junit_xml`     |
+| Key           | Value   | Option    | Description                                                     |
+| ------------- | ------- | --------- | --------------------------------------------------------------- |
+| PATH          | string  | Mandatory | Test scenario file path                                         |
+| NAME          | string  | Mandatory | Test scenario file name                                         |
+| OUTPUT_DIR    | string  | Mandatory | Directory where all output will be stored                       |
+| RESULT_FORMAT | string  | Optional  | Default value: `junit_xml`<br />Valid value: `junit_xml`        |
 | SUBPROC_LOG   | boolean | Optional  | Default value: `false`<br />If `true`, print subprocess message |
+| TARGETs       | list    | Optional  | TARGETs info to overwrite for this and after scenarios          |
+| INITIATORs    | list    | Optional  | INITIATORs info to overwrite for this and after scenarios       |

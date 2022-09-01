@@ -1,5 +1,5 @@
 {
-    "Targets": [
+    "TARGETs": [
         {
             "NAME": "Target01",
             "ID": "target_id",
@@ -64,7 +64,7 @@
             }
         }
     ],
-    "Initiators": [
+    "INITIATORs": [
         {
             "NAME": "Initiator01",
             "ID": "init_id",
@@ -95,7 +95,7 @@
             ]
         }
     ],
-    "Scenarios": [
+    "SCENARIOs": [
         {
             "PATH": "./tool/arion/scenario/fio_rebuild.py",
             "NAME": "fio_rebuild",
