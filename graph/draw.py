@@ -1,7 +1,9 @@
+from typing import Dict, List
+import dateutil
 import lib
+import matplotlib.dates as dt
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
-import numpy as np
 import time
 
 
@@ -286,3 +288,190 @@ def DrawLog(data: dict, pic_name: str) -> None:
     DrawLogGraphWithType(data["iops"], f"{pic_name}_per_job_iops.png", "iops")
     DrawLogGraphWithType(data["bw"], f"{pic_name}_per_job_bw.png", "bw")
     DrawLogGraphWithType(data["clat"], f"{pic_name}_per_job_clat.png", "lat")
+
+
+def DrawPcmMemoryGraphs(filename: str, x_val: List[str], y_vals: Dict[str, Dict[str, List[float]]]) -> None:
+    """ Draw PCM memory graphs.
+
+    Args:
+        filename (str): PNG file name with path. This file will be created if success.
+        x_val (List[str]): x-axis values(timeline).
+        y_vals (Dict[str, Dict[str, List[float]]]): y-axis values.
+            First dict matches subplot, Second dict matches legend(line), list is a set of line data.
+    """
+    try:
+        plt.clf()  # plot 초기화
+        num_subplot = len(y_vals)
+        # plot size setting(unit: inch)
+        fig = plt.figure(figsize=(8, 3 * num_subplot))
+        idx_subplot = 1
+        dates = [dateutil.parser.parse(s) for s in x_val]
+        for y_key, y_val in y_vals.items():
+            ax = plt.subplot(num_subplot, 1, idx_subplot)
+            idx_subplot += 1
+            ax.set_title(y_key, fontsize=12)
+            ax.grid(True, axis="y", color="lightgrey", zorder=0)
+            ax.tick_params(axis='y', labelrotation=30, labelsize=8)
+            ax.tick_params(axis='x', labelrotation=0, labelsize=8)
+            ax.xaxis.set_major_formatter(dt.DateFormatter("%H:%M:%S"))
+            ax.xaxis.set_major_locator(plt.MaxNLocator(10))
+            alpha_mem = 1.0
+            alpha_read = 1.0
+            alpha_write = 1.0
+            for lg_key, lg_val in y_val.items():
+                if "Memory" in lg_key:
+                    if "SKT1" in lg_key:
+                        plt.plot(dates, lg_val, label=lg_key,
+                                 color='rebeccapurple', alpha=alpha_mem, linestyle="--")
+                    else:
+                        plt.plot(dates, lg_val, label=lg_key,
+                                 color='rebeccapurple', alpha=alpha_mem)
+                    alpha_mem -= 0.5
+                elif "Read" in lg_key:
+                    if "SKT1" in lg_key:
+                        plt.plot(dates, lg_val, label=lg_key,
+                                 color='dodgerblue', alpha=alpha_read, linestyle="--")
+                    else:
+                        plt.plot(dates, lg_val, label=lg_key,
+                                 color='dodgerblue', alpha=alpha_read)
+                    alpha_read -= 0.1
+                elif "Write" in lg_key:
+                    if "SKT1" in lg_key:
+                        plt.plot(dates, lg_val, label=lg_key,
+                                 color='crimson', alpha=alpha_write, linestyle="--")
+                    else:
+                        plt.plot(dates, lg_val, label=lg_key,
+                                 color='crimson', alpha=alpha_write)
+                    alpha_write -= 0.1
+                else:
+                    plt.plot(dates, lg_val, label=lg_key)
+            plt.legend(fontsize=8, loc="upper left", ncol=2)
+
+        plt.tight_layout()
+        plt.savefig(filename, dpi=200)
+        plt.close(fig)
+    except Exception as e:
+        lib.printer.red(f"{__name__} [Error] {e}")
+        plt.close(fig)
+
+
+def DrawPcmCpuGraphs(filename: str, x_val: List[str], y_vals: Dict[str, Dict[str, List[float]]]) -> None:
+    """ Draw PCM memory graphs.
+
+    Args:
+        filename (str): PNG file name with path. This file will be created if success.
+        x_val (List[str]): x-axis values(timeline).
+        y_vals (Dict[str, Dict[str, List[float]]]): y-axis values.
+            First dict matches subplot, Second dict matches legend(line), list is a set of line data.
+    """
+    try:
+        plt.clf()  # plot 초기화
+        num_subplot = len(y_vals)
+        # plot size setting(unit: inch)
+        fig = plt.figure(figsize=(16, 6 * num_subplot))
+        idx_subplot = 1
+        dates = [dateutil.parser.parse(s) for s in x_val]
+        color_set = ["#E74C3C", "#8E44AD", "#3498DB", "#16A085", "#2ECC71",
+                     "#F39C12", "#D35400", "#BDC3C7", "#7F8C8D", "#2C3E50"]
+        cs_len = len(color_set)
+        for y_key, y_val in y_vals.items():
+            ax = plt.subplot(num_subplot, 1, idx_subplot)
+            idx_subplot += 1
+            ax.set_title(y_key, fontsize=12)
+            ax.grid(True, axis="y", color="lightgrey", zorder=0)
+            ax.tick_params(axis='y', labelrotation=30, labelsize=8)
+            ax.tick_params(axis='x', labelrotation=0, labelsize=8)
+            ax.xaxis.set_major_formatter(dt.DateFormatter("%H:%M:%S"))
+            ax.xaxis.set_major_locator(plt.MaxNLocator(10))
+
+            skt_0_idx = 0
+            skt_1_idx = 0
+            skt_etc_0_idx = 0
+            skt_etc_1_idx = 0
+            skt_upi_0_idx = 0
+            skt_upi_1_idx = 0
+            cores_l2_idx = 0
+            cores_l3_idx = 0
+            etc_idx = 0
+            for lg_key, lg_val in y_val.items():
+                if "Sockets" == y_key:
+                    if "Socket 0" in lg_key:
+                        plt.plot(dates, lg_val, label=lg_key,
+                                 color=color_set[skt_0_idx],
+                                 linewidth=2)
+                        skt_0_idx += 1
+                        if cs_len == skt_0_idx:
+                            skt_0_idx = 0
+                    else:
+                        plt.plot(dates, lg_val, label=lg_key,
+                                 color=color_set[skt_1_idx],
+                                 linewidth=2,
+                                 linestyle="dashed")
+                        skt_1_idx += 1
+                        if cs_len == skt_1_idx:
+                            skt_1_idx = 0
+                elif "Sockets Etc" == y_key:
+                    if "Socket 0" in lg_key:
+                        plt.plot(dates, lg_val, label=lg_key,
+                                 color=color_set[skt_etc_0_idx],
+                                 linewidth=2)
+                        skt_etc_0_idx += 1
+                        if cs_len == skt_etc_0_idx:
+                            skt_etc_0_idx = 0
+                    else:
+                        plt.plot(dates, lg_val, label=lg_key,
+                                 color=color_set[skt_etc_1_idx],
+                                 linewidth=2,
+                                 linestyle="dashed")
+                        skt_etc_1_idx += 1
+                        if cs_len == skt_etc_1_idx:
+                            skt_etc_1_idx = 0
+                elif "Sockets UPI" == y_key:
+                    if "SKT0" in lg_key:
+                        plt.plot(dates, lg_val, label=lg_key,
+                                 color=color_set[skt_upi_0_idx],
+                                 linewidth=2)
+                        skt_upi_0_idx += 1
+                        if cs_len == skt_upi_0_idx:
+                            skt_upi_0_idx = 0
+                    else:
+                        plt.plot(dates, lg_val, label=lg_key,
+                                 color=color_set[skt_upi_1_idx],
+                                 linewidth=2,
+                                 linestyle="dashed")
+                        skt_upi_1_idx += 1
+                        if cs_len == skt_upi_1_idx:
+                            skt_upi_1_idx = 0
+                elif "Cores" in y_key:
+                    if "MISS" in y_key or "HIT" in y_key:
+                        if "L2" in lg_key:
+                            plt.plot(dates, lg_val, label=lg_key,
+                                     color=color_set[cores_l2_idx],
+                                     linewidth=2)
+                            cores_l2_idx += 1
+                            if cs_len == cores_l2_idx:
+                                cores_l2_idx = 0
+                        else:
+                            plt.plot(dates, lg_val, label=lg_key,
+                                     color=color_set[cores_l3_idx],
+                                     linewidth=2,
+                                     linestyle="dashed")
+                            cores_l3_idx += 1
+                            if cs_len == cores_l3_idx:
+                                cores_l3_idx = 0
+                else:
+                    plt.plot(dates, lg_val, label=lg_key,
+                             color=color_set[etc_idx],
+                             linewidth=2,
+                             linestyle="solid")
+                    etc_idx += 1
+                    if cs_len == etc_idx:
+                        etc_idx = 0
+            plt.legend(fontsize=8, loc="upper left", ncol=2)
+
+        plt.tight_layout()
+        plt.savefig(filename, dpi=400)
+        plt.close(fig)
+    except Exception as e:
+        lib.printer.red(f"{__name__} [Error] {e}")
+        plt.close(fig)

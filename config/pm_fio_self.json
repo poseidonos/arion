@@ -1,0 +1,111 @@
+{
+    "TARGETs": [
+        {
+            "NAME": "Target01",
+            "ID": "root",
+            "PW": "psd",
+            "NIC": {
+                "SSH": "10.1.2.12",
+                "IP1": "10.100.2.12"
+            },
+            "POS": {
+                "DIR": "/home/isaac/ibofos",
+                "BIN": "poseidonos",
+                "CLI": "poseidonos-cli",
+                "CFG": "pos.conf",
+                "LOG": "pos.log",
+                "TELEMETRY": false,
+                "LOGGER_LEVEL": "info",
+                "TRANSPORT": {
+                    "TYPE": "tcp",
+                    "NUM_SHARED_BUFFER": 4096
+                },
+                "SUBSYSTEMs": [
+                    {
+                        "NUM_SUBSYSTEMS": 3,
+                        "NQN_PREFIX": "nqn.2022-04.pos:subsystem",
+                        "NQN_INDEX": 1,
+                        "SN_PREFIX": "POS00000000000",
+                        "SN_INDEX": 1,
+                        "IP": "IP1",
+                        "PORT": 1158
+                    }
+                ],
+                "DEVICEs": [
+                    {
+                        "NAME": "uram0",
+                        "TYPE": "uram",
+                        "NUM_BLOCKS": 8388608,
+                        "BLOCK_SIZE": 512,
+                        "NUMA": 0
+                    }
+                ],
+                "ARRAYs": [
+                    {
+                        "NAME": "ARR0",
+                        "RAID_OR_MEDIA": "RAID5",
+                        "WRITE_THROUGH": true,
+                        "USER_DEVICE_LIST": "unvme-ns-0,unvme-ns-1,unvme-ns-2,unvme-ns-3",
+                        "SPARE_DEVICE_LIST": "",
+                        "BUFFER_DEV": "uram0",
+                        "VOLUMEs": [
+                            {
+                                "NUM_VOLUMES": 3,
+                                "NAME_PREFIX": "VOL",
+                                "NAME_INDEX": 1,
+                                "SIZE_MiB": 204800,
+                                "USE_SUBSYSTEMS": 3,
+                                "NQN_PREFIX": "nqn.2022-04.pos:subsystem",
+                                "NQN_INDEX": 1
+                            }
+                        ]
+                    }
+                ]
+            },
+            "PROFILE": {
+                "PCM": {
+                    "BIN_DIR": "/home/isaac/opensource/pcm-master/build/bin"
+                }
+            }
+        }
+    ],
+    "INITIATORs": [
+        {
+            "NAME": "Initiator01",
+            "ID": "root",
+            "PW": "psd",
+            "NIC": {
+                "SSH": "10.1.2.12"
+            },
+            "SPDK": {
+                "DIR": "/home/isaac/ibofos/lib/spdk",
+                "TRANSPORT": "tcp"
+            },
+            "TARGETs": [
+                {
+                    "NAME": "Target01",
+                    "TRANSPORT": "tcp",
+                    "IP": "IP1",
+                    "PORT": 1158,
+                    "SUBSYSTEMs": [
+                        {
+                            "NUM_SUBSYSTEMS": 3,
+                            "NQN_PREFIX": "nqn.2022-04.pos\\:subsystem",
+                            "NQN_INDEX": 1,
+                            "NUM_NS": 1,
+                            "NS_INDEX": 1
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "SCENARIOs": [
+        {
+            "PATH": "./tool/arion/scenario/fio_self.py",
+            "NAME": "fio_self",
+            "OUTPUT_DIR": "./output",
+            "SUBPROC_LOG": true
+        }
+    ]
+}

@@ -1,5 +1,4 @@
 from node import node
-import json
 import lib
 import pos
 import prerequisite
