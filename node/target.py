@@ -1,7 +1,6 @@
 from node import node
 import json
 import lib
-import os
 import pos
 import prerequisite
 import time

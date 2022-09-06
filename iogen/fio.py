@@ -128,3 +128,9 @@ class Fio:
                         )
                         ns += 1
                     nqn_index += 1
+
+    def get_interval(self) -> int:
+        if self.opt.get("eta-interval"):
+            return int(self.opt["eta-interval"])
+        else:
+            return 1

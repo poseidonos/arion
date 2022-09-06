@@ -107,6 +107,7 @@ def play(config):
 
             lib.subproc.sync_run(f"mkdir -p {scenario['OUTPUT_DIR']}")
             lib.subproc.sync_run(f"mkdir -p {scenario['OUTPUT_DIR']}/log")
+            lib.subproc.sync_run(f"mkdir -p {scenario['OUTPUT_DIR']}/profile")
 
             spec = importlib.util.spec_from_file_location(
                 scenario["NAME"], scenario["PATH"])
