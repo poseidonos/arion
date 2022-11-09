@@ -22,8 +22,8 @@ def core_pattern(id, pw, ip, core_dir, core_pattern):
         sudo mkdir -p {core_dir}"
     lib.subproc.sync_run(mk_core_dir)
 
-    set_core_pattern = ["sshpass", "-p", pw,
-                        "ssh", f"{id}@{ip}", "sudo", "nohup"]
-    set_core_pattern.extend(
-        ["echo", core_pattern, ">", "/proc/sys/kernel/core_pattern"])
-    lib.subproc.sync_run(set_core_pattern, False, False)
+    set_core_pattern = (
+        f"sshpass -p {pw} ssh -o StrictHostKeyChecking=no {id}@{ip} "
+        f"'sudo echo {core_pattern} > /proc/sys/kernel/core_pattern'"
+    )
+    lib.subproc.sync_run(set_core_pattern)

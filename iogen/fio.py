@@ -19,6 +19,7 @@ class Fio:
         self.linked_jobs = []
         self.kdd_mode = False
         self.timestamp = timestamp
+        self.preload_asan = False
 
     def initialize(self, kdd_mode: bool = False) -> None:
         """ Set FIO default options.
@@ -87,13 +88,19 @@ class Fio:
             self.opt["serialize_overlap"] = "0"
         self.linked_jobs = job_list
 
+    def set_preload_asan(self, asan: bool) -> None:
+        self.preload_asan = asan
+
     def stringify(self) -> str:
         """ Stringify FIO options
 
         Returns:
             str: fio run command
         """
-        str = f"sshpass -p {self.initiator.pw} ssh {self.initiator.id}@{self.initiator.nic_ssh} nohup 'fio"
+        str = f"sshpass -p {self.initiator.pw} ssh {self.initiator.id}@{self.initiator.nic_ssh} 'sudo "
+        if (self.preload_asan):
+            str += f"LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libasan.so.4 "
+        str += "fio"
         for key in self.opt:
             str += f" --{key}={self.opt[key]}"
         if 0 == len(self.linked_jobs):

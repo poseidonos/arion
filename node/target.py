@@ -43,6 +43,10 @@ class Target(node.Node):
             self.cli_local_run = json["POS"]["CLI_LOCAL_RUN"]
         except Exception as e:
             self.cli_local_run = False
+        try:
+            self.asan_opt = json["POS"]["ASAN_OPTIONS"]
+        except Exception as e:
+            self.asan_opt = ""
         self.cli = pos.cli.Cli(json, self.cli_local_run)
         self.prereq_manager = prerequisite.manager.Manager(json, self.spdk_dir)
         self.cmd_prefix = (
@@ -66,11 +70,15 @@ class Target(node.Node):
             self.id, self.pw, self.nic_ssh, self.pos_dir, self.pos_cfg)
         self.pos_exe_thread = pos.env.execute_pos(
             self.id, self.pw, self.nic_ssh,
-            self.pos_bin, self.pos_dir, self.pos_log)
+            self.pos_bin, self.pos_dir, self.pos_log, self.asan_opt)
 
         lib.printer.yellow(
             f"wait for {self.pos_wait} seconds until POS ready to handle CLI")
         time.sleep(self.pos_wait)
+
+        if (False == self.pos_exe_thread.is_alive()):
+            self.pos_exe_thread.join()
+            raise Exception("POS terminated abnormally.")
 
         # Step 3. POS Setting
         self.cli.subsystem_create_transport(
@@ -175,6 +183,11 @@ class Target(node.Node):
         pos.env.kill_pos(self.id, self.pw, self.nic_ssh, self.pos_bin)
         time.sleep(1)
         lib.printer.green(f" {__name__}.forced_exit end : {self.name}")
+
+    def forced_dump(self) -> None:
+        pos.env.dump_pos(self.id, self.pw, self.nic_ssh, self.pos_bin)
+        time.sleep(1)
+        lib.printer.green(f" {__name__}.forced_dump end : {self.name}")
 
     def dirty_bring_up(self) -> None:
         # Step 3.3. array mount
