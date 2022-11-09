@@ -1,6 +1,4 @@
-import copy
 import lib
-import subprocess
 
 
 def is_pos_running(id, pw, ip, bin) -> bool:
@@ -17,13 +15,21 @@ def kill_pos(id, pw, ip, bin) -> None:
     lib.subproc.sync_run(pkill_cmd)
 
 
+def dump_pos(id, pw, ip, bin) -> None:
+    pkill_cmd = f"sshpass -p {pw} ssh -o StrictHostKeyChecking=no {id}@{ip} sudo pkill -SIGQUIT {bin}"
+    lib.subproc.sync_run(pkill_cmd)
+
+
 def copy_pos_config(id, pw, ip, dir, cfg) -> None:
     copy_cmd = f"sshpass -p {pw} ssh -o StrictHostKeyChecking=no {id}@{ip} sudo cp {dir}/config/{cfg} /etc/pos/pos.conf"
     lib.subproc.sync_run(copy_cmd)
 
 
-def execute_pos(id, pw, ip, bin, dir, log) -> None:
-    exe_cmd = f"sshpass -p {pw} ssh -o StrictHostKeyChecking=no {id}@{ip} 'sudo nohup {dir}/bin/{bin}"
+def execute_pos(id, pw, ip, bin, dir, log, asan_opt) -> None:
+    exe_cmd = f"sshpass -p {pw} ssh -o StrictHostKeyChecking=no {id}@{ip} 'sudo "
+    if "" != asan_opt:
+        exe_cmd += f"ASAN_OPTIONS={asan_opt}"
+    exe_cmd += f" {dir}/bin/{bin}"
     if "" != log:
         exe_cmd += f" >> {dir}/script/{log}'"
     else:

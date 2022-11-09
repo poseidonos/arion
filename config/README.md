@@ -180,6 +180,7 @@ Each object in the list is constructed as shown in the table below.
 
 | Key             | Value   | Option    | Description                                                  |
 | --------------- | ------- | --------- | ------------------------------------------------------------ |
+| ASAN_OPTIONS    | string  | Optional  | POS run with ASAN_OPTIONS (POS has to be built with ASAN)    |
 | DIR             | string  | Mandatory | POS root directory                                           |
 | BIN             | string  | Mandatory | POS binary name                                              |
 | CLI             | string  | Mandatory | POS CLI name                                                 |
