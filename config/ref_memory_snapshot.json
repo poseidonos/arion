@@ -1,0 +1,111 @@
+{
+    "TARGETs": [
+        {
+            "NAME": "Target01",
+            "ID": "root",
+            "PW": "psd",
+            "NIC": {
+                "SSH": "127.0.0.1",
+                "IP1": "127.0.0.1"
+            },
+            "POS": {
+                "DIR": "/home/psd/ibofos",
+                "BIN": "poseidonos",
+                "CLI": "poseidonos-cli",
+                "CLI_LOCAL_RUN": true,
+                "CFG": "pos.conf",
+                "LOG": "pos.log",
+                "TELEMETRY": false,
+                "LOGGER_LEVEL": "info",
+                "TRANSPORT": {
+                    "TYPE": "tcp",
+                    "NUM_SHARED_BUFFER": 4096
+                },
+                "SUBSYSTEMs": [
+                    {
+                        "NUM_SUBSYSTEMS": 3,
+                        "NQN_PREFIX": "nqn.2022-04.pos:subsystem",
+                        "NQN_INDEX": 1,
+                        "SN_PREFIX": "POS00000000000",
+                        "SN_INDEX": 1,
+                        "IP": "IP1",
+                        "PORT": 1158
+                    }
+                ],
+                "DEVICEs": [
+                    {
+                        "NAME": "uram0",
+                        "TYPE": "uram",
+                        "NUM_BLOCKS": 2097152,
+                        "BLOCK_SIZE": 512,
+                        "NUMA": 0
+                    }
+                ],
+                "ARRAYs": [
+                    {
+                        "NAME": "ARR0",
+                        "RAID_OR_MEDIA": "RAID5",
+                        "WRITE_THROUGH": false,
+                        "USER_DEVICE_LIST": "unvme-ns-0,unvme-ns-1,unvme-ns-2",
+                        "SPARE_DEVICE_LIST": "unvme-ns-3",
+                        "BUFFER_DEV": "uram0",
+                        "VOLUMEs": [
+                            {
+                                "NUM_VOLUMES": 3,
+                                "NAME_PREFIX": "VOL",
+                                "NAME_INDEX": 1,
+                                "SIZE_MiB": 2048,
+                                "USE_SUBSYSTEMS": 3,
+                                "NQN_PREFIX": "nqn.2022-04.pos:subsystem",
+                                "NQN_INDEX": 1
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+    ],
+    "INITIATORs": [
+        {
+            "NAME": "Initiator01",
+            "ID": "root",
+            "PW": "psd",
+            "NIC": {
+                "SSH": "127.0.0.1"
+            },
+            "SPDK": {
+                "DIR": "/home/psd/ibofos/lib/spdk",
+                "TRANSPORT": "tcp"
+            },
+            "TARGETs": [
+                {
+                    "NAME": "Target01",
+                    "TRANSPORT": "tcp",
+                    "IP": "IP1",
+                    "PORT": 1158,
+                    "KDD_MODE": true,
+                    "SUBSYSTEMs": [
+                        {
+                            "NUM_SUBSYSTEMS": 3,
+                            "NQN_PREFIX": "nqn.2022-04.pos\\:subsystem",
+                            "NQN_INDEX": 1,
+                            "SN_PREFIX": "POS00000000000",
+                            "SN_INDEX": 1,
+                            "NUM_NS": 1,
+                            "NS_INDEX": 1
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "SCENARIOs": [
+        {
+            "PATH": "./scenario/ref_memory_snapshot.py",
+            "NAME": "ref_memory_snapshot",
+            "OUTPUT_DIR": "./output",
+            "RESULT_FORMAT": "junit_xml",
+            "SUBPROC_LOG": true
+        }
+    ]
+}
