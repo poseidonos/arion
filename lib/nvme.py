@@ -9,9 +9,9 @@ class Cli:
             f" {json['ID']}@{json['NIC']['SSH']} sudo"
         )
 
-    def _send_cli(self, cmd, fmt="normal"):
+    def _send_cli(self, cmd, fmt="normal", ignore_err=False):
         if fmt == "json":
-            return json.loads(lib.subproc.sync_run(f"{self.prefix} {cmd}"))
+            return lib.parser.parse_str_to_dict(lib.subproc.sync_run(f"{self.prefix} {cmd}"), ignore_err)
         else:
             return lib.subproc.sync_run(f"{self.prefix} {cmd}")
 
@@ -37,7 +37,7 @@ class Cli:
         return self._send_cli(f"nvme id-ns {device} -o {fmt}", fmt)
 
     def list(self, fmt="normal"):
-        return self._send_cli(f"nvme list -o {fmt}", fmt)
+        return self._send_cli(f"nvme list -o {fmt}", fmt, True)
 
     def zns_close_zone(self, device, slba, all):
         if all:
