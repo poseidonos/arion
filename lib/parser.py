@@ -7,6 +7,33 @@ import os
 import sys
 
 
+def parse_str_to_dict(str_data: str, ignore_err: bool = False) -> dict:
+    """ Parse string data to dict data and return dict data.
+    If it's invalid, raise Exception with the raw file data.
+
+    Args:
+        str_data (str): string data to parse
+        ignore_err (bool, optional): Ignore error. Defaults to False.
+
+    Raises:
+        Exception: _description_
+        Exception: _description_
+
+    Returns:
+        dict: load JSON to dict
+    """
+    index = str_data.find('{')
+    if index == -1:
+        raise Exception(f"Unexpected error: {str_data}")
+    else:
+        if index != 0:
+            if ignore_err:
+                lib.printer.red(f"Error(but ignored by option)!!!\n{str_data[:index]}")
+            else:
+                raise Exception(f"Unexpected error: {str_data[:index]}")
+        return json.loads(str_data[index:])
+
+
 def parse_json_file(file_path: str) -> dict:
     """ Read a file(should be JSON format) and return dict data.
     If it's invalid, raise Exception with the raw file data.
